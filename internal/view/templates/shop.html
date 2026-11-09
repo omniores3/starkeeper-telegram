@@ -1,0 +1,104 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon amber" style="width:42px;height:42px;border-radius:12px;font-size:20px">🛍️</span>
+    <div><h2 style="margin:0;font-size:15px">商城与任务</h2><p class="small muted" style="margin:0">让积分有处可花，让每天都有小目标</p></div>
+  </div>
+  <div style="display:flex;gap:22px;margin-left:6px">
+    <div><span class="muted tiny">商品</span><div style="font-size:22px;font-weight:650">{{len .Data.Items}}</div></div>
+    <div><span class="muted tiny">任务</span><div style="font-size:22px;font-weight:650">{{len .Data.Tasks}}</div></div>
+    <div><span class="muted tiny">兑换</span><div style="font-size:22px;font-weight:650">{{.Data.OrdersN}}</div></div>
+    <div><span class="muted tiny">消耗积分</span><div style="font-size:22px;font-weight:650">{{fmtNum .Data.Spent}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <select id="shop-group" style="width:auto;min-width:190px">
+    {{range .Data.Groups}}<option value="{{.ID}}" {{if and $.Data.Selected (eq $.Data.Selected.ID .ID)}}selected{{end}}>{{.Title}}</option>{{end}}
+  </select>
+</section>
+
+<div class="tabs" style="margin-top:16px">
+  <button class="tab active" data-shop-tab="items">🛍️ 商品</button>
+  <button class="tab" data-shop-tab="tasks">🎯 任务</button>
+  <button class="tab" data-shop-tab="orders">🧾 兑换记录</button>
+  <button class="tab" data-shop-tab="claims">📈 任务进度</button>
+</div>
+
+<div class="tab-pane active" id="shop-pane-items">
+  <div class="toolbar">
+    <div><span class="section-title" style="margin:0">积分商品</span></div>
+    <button class="btn btn-primary" id="new-shop-item">+ 新建商品</button>
+  </div>
+  <div class="group-grid">
+    {{range .Data.Items}}
+    <article class="group-card" data-shop-item="{{.ID}}" style="padding:18px">
+      <div class="group-top">
+        <span class="group-avatar" style="background:linear-gradient(145deg,rgba(251,191,36,.25),rgba(139,92,246,.25));font-size:22px">{{.Icon}}</span>
+        <div class="group-info"><h3>{{.Name}}</h3><p>{{if eq .GroupID 0}}全部群组{{else}}指定群组 #{{.GroupID}}{{end}}</p></div>
+        <span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{if eq .Status "active"}}上架中{{else}}已下架{{end}}</span>
+      </div>
+      <p class="small muted" style="min-height:34px;margin:10px 0">{{.Description}}</p>
+      <div class="group-meta">
+        <div><b>{{fmtNum .CostPoints}}</b><span>积分</span></div>
+        <div><b>{{if eq .Stock -1}}∞{{else}}{{.Stock}}{{end}}</b><span>库存</span></div>
+        <div><b>{{.PerUserLimit}}</b><span>每人限兑</span></div>
+      </div>
+      <div class="group-actions">
+        <span class="tiny muted">{{rune .RewardText 24}}</span>
+        <div class="row" style="gap:5px">
+          <button class="btn btn-sm" data-shop-edit>编辑</button>
+          <button class="btn btn-sm btn-ghost" data-shop-delete style="color:var(--rose)">删除</button>
+        </div>
+      </div>
+    </article>
+    {{end}}
+    <button class="group-add" id="new-shop-item-2" type="button" style="min-height:190px"><span class="plus">＋</span><strong style="font-size:12.5px">新建商品</strong><span class="tiny">积分兑换、优惠券、头衔</span></button>
+  </div>
+</div>
+
+<div class="tab-pane" id="shop-pane-tasks">
+  <div class="toolbar"><div><span class="section-title" style="margin:0">任务中心</span></div><button class="btn btn-primary" id="new-task">+ 新建任务</button></div>
+  <div class="table-wrap">
+    <table><thead><tr><th>任务</th><th>类型</th><th>目标</th><th>奖励</th><th>周期</th><th>状态</th><th></th></tr></thead><tbody>
+      {{range .Data.Tasks}}
+      <tr data-task="{{.ID}}">
+        <td><strong>{{.Name}}</strong><div class="tiny muted">{{.Description}}</div></td>
+        <td><span class="tag tag-violet">{{if eq .Type "checkin"}}签到{{else if eq .Type "message"}}发言{{else if eq .Type "campaign"}}活动{{else}}手动{{end}}</span></td>
+        <td>{{.Target}}</td>
+        <td><b style="color:var(--amber)">+{{.RewardPoints}}</b></td>
+        <td>{{if eq .Period "once"}}一次性{{else}}每日{{end}}</td>
+        <td>{{if eq .Status "active"}}<span class="tag tag-emerald">启用</span>{{else}}<span class="tag tag-muted">停用</span>{{end}}</td>
+        <td><div class="row" style="gap:4px;justify-content:flex-end"><button class="btn btn-sm" data-task-edit>编辑</button><button class="btn btn-sm btn-ghost" data-task-delete style="color:var(--rose)">删除</button></div></td>
+      </tr>
+      {{else}}
+      <tr><td colspan="7"><div class="empty" style="padding:30px"><p>还没有任务，创建一个每日签到任务开始吧。</p></div></td></tr>
+      {{end}}
+    </tbody></table>
+  </div>
+</div>
+
+<div class="tab-pane" id="shop-pane-orders">
+  <div class="card panel">
+    <div class="panel-head"><div><h2>兑换记录</h2><p>最近 40 笔商品兑换</p></div><span class="tag tag-amber">{{.Data.OrdersN}} 笔</span></div>
+    <div class="table-wrap"><table><thead><tr><th>商品</th><th>成员</th><th>积分</th><th>发放内容</th><th>时间</th></tr></thead><tbody>
+      {{range .Data.Orders}}
+      <tr><td><span class="tag tag-violet">#{{.ItemID}}</span></td><td><div class="person"><span class="avatar">{{initials .FirstName}}</span><div><strong>{{.FirstName}}</strong><small>@{{.Username}}</small></div></div></td><td>{{fmtNum .CostPoints}}</td><td class="tiny">{{rune .RewardText 40}}</td><td>{{fmtTime .CreatedAt}}</td></tr>
+      {{else}}
+      <tr><td colspan="5"><div class="empty" style="padding:30px"><p>还没有兑换记录</p></div></td></tr>
+      {{end}}
+    </tbody></table></div>
+  </div>
+</div>
+
+<div class="tab-pane" id="shop-pane-claims">
+  <div class="card panel">
+    <div class="panel-head"><div><h2>任务进度</h2><p>最近 40 条任务进度与领取记录</p></div><span class="tag tag-emerald">{{.Data.ClaimsN}} 次领取</span></div>
+    <div class="table-wrap"><table><thead><tr><th>任务</th><th>用户 ID</th><th>周期</th><th>进度</th><th>状态</th><th>更新时间</th></tr></thead><tbody>
+      {{range .Data.Claims}}
+      <tr><td>{{.TaskName}}</td><td class="mono">{{.UserID}}</td><td>{{.PeriodKey}}</td><td>{{.Progress}}</td><td>{{if .Claimed}}<span class="tag tag-emerald">已领取</span>{{else}}<span class="tag tag-amber">进行中</span>{{end}}</td><td>{{fmtTime .UpdatedAt}}</td></tr>
+      {{else}}
+      <tr><td colspan="6"><div class="empty" style="padding:30px"><p>还没有任务进度</p></div></td></tr>
+      {{end}}
+    </tbody></table></div>
+  </div>
+</div>
+{{end}}

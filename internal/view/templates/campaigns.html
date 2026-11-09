@@ -1,0 +1,80 @@
+﻿{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:13px">
+    <span class="stat-icon violet" style="width:42px;height:42px;border-radius:12px;font-size:19px">🎁</span>
+    <div><h2 style="margin:0;font-size:15px">营销活动</h2><p class="small muted" style="margin:0">抽奖、兑换与群发，把热度聚起来</p></div>
+  </div>
+  <div style="display:flex;gap:24px;margin-left:8px">
+    <div><span class="muted tiny">进行中</span><div style="font-size:22px;font-weight:650">{{.Data.Active}}</div></div>
+    <div><span class="muted tiny">累计报名</span><div style="font-size:22px;font-weight:650">{{fmtNum .Data.Entries}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-primary" id="new-campaign-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>创建活动</button>
+</section>
+
+<div class="campaign-grid" style="margin-top:18px">
+  {{range .Data.Campaigns}}
+  <article class="campaign-card fade-in" data-campaign="{{.ID}}">
+    <div class="campaign-cover">
+      <div class="campaign-top">
+        <span class="campaign-icon">{{if eq .Type "redeem"}}🎟{{else}}🎁{{end}}</span>
+        <div class="row" style="gap:5px">
+          <span class="tag {{if eq .Status "active"}}tag-emerald{{else if eq .Status "finished"}}tag-muted{{else if eq .Status "drawing"}}tag-amber{{else}}tag-violet{{end}}">{{statusLabel .Status}}</span>
+          <span class="tag tag-muted">{{if eq .Type "redeem"}}兑换码{{else}}抽奖{{end}}</span>
+        </div>
+      </div>
+      <h3>{{.Name}}</h3>
+      <p>{{rune (plain .Body) 100}}</p>
+    </div>
+    <div class="campaign-body">
+      <div class="campaign-stats">
+        <div><span>报名人数</span><b>{{index $.Data.EntryCounts .ID}}</b></div>
+        <div><span>{{if eq .Type "redeem"}}奖池{{else}}奖池{{end}}</span><b>{{fmtNum .PrizePool}}</b></div>
+        <div><span>{{if eq .Type "redeem"}}结束{{else}}开奖{{end}}</span><b style="font-size:11px;padding-top:3px">{{if eq .Type "redeem"}}{{fmtDate .EndAt}}{{else}}{{fmtDate .DrawAt}}{{end}}</b></div>
+      </div>
+      <div class="campaign-foot">
+        {{if ne .Status "finished"}}
+        <button class="btn btn-sm btn-primary" data-publish>发布</button>
+        {{end}}
+        {{if and (eq .Type "lottery") (ne .Status "finished")}}
+        <button class="btn btn-sm" data-draw>开奖</button>
+        {{end}}
+        <button class="btn btn-sm" data-view>{{if eq .Type "redeem"}}兑换码{{else}}名单{{end}}</button>
+        <button class="btn btn-sm btn-ghost" data-edit>编辑</button>
+        <span class="spacer"></span>
+        <button class="btn btn-sm btn-ghost" data-delete style="color:var(--rose)">删除</button>
+      </div>
+    </div>
+  </article>
+  {{end}}
+</div>
+
+{{if not .Data.Campaigns}}
+<div class="empty">
+  <div class="empty-ico">🎁</div>
+  <h3>还没有营销活动</h3>
+  <p>创建抽奖活动聚集人气，或用兑换码完成一次漂亮的转化。</p>
+</div>
+{{end}}
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel">
+    <div class="panel-head"><div><h2>抽奖活动</h2><p>报名 → 开奖 → 自动发积分</p></div><span class="tag tag-amber">LOTTERY</span></div>
+    <p class="small muted" style="margin:0">发布活动卡片后，群友点击「报名参与」进入奖池。到开奖时间后自动随机抽取中奖者并发放积分；也可以在后台手动立即开奖。</p>
+    <div class="setup-steps">
+      <div class="setup-step">设置奖池总积分、中奖人数和开奖时间。</div>
+      <div class="setup-step">发布到目标群组，群友点击按钮报名。</div>
+      <div class="setup-step">开奖后自动发送中奖公告并发放积分。</div>
+    </div>
+  </section>
+  <section class="card panel">
+    <div class="panel-head"><div><h2>兑换码活动</h2><p>把福利变成可传播的代码</p></div><span class="tag tag-violet">REDEEM</span></div>
+    <p class="small muted" style="margin:0">批量生成一次性兑换码，群友在群内直接发送兑换码即可领取积分。适合做联名福利、暗号活动和线下引流。</p>
+    <div class="setup-steps">
+      <div class="setup-step">设置兑换码数量与每码积分。</div>
+      <div class="setup-step">发布活动说明，或私下发放兑换码。</div>
+      <div class="setup-step">群友在群里发送兑换码，自动到账。</div>
+    </div>
+  </section>
+</div>
+{{end}}

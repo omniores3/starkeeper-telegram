@@ -1,0 +1,37 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon amber" style="width:42px;height:42px;border-radius:12px;font-size:19px">🧩</span>
+    <div><h2 style="margin:0;font-size:15px">模板市场</h2><p class="small muted" style="margin:0">把一整套群运营文案，一次装进你的群</p></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="tag tag-cyan">已装 {{.Data.Total}} 个模板</span>
+  <a class="btn" href="/api/market/export">导出模板 JSON</a>
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Packs}}
+  <article class="group-card market-pack" data-pack="{{.ID}}" style="padding:18px">
+    <div class="group-top">
+      <span class="group-avatar" style="background:linear-gradient(145deg,rgba(251,191,36,.28),rgba(139,92,246,.2));font-size:21px">{{.Icon}}</span>
+      <div class="group-info"><h3>{{.Name}}</h3><p>{{len .Templates}} 个模板</p></div>
+      <span class="tag tag-violet">套装</span>
+    </div>
+    <p class="small muted" style="min-height:34px;margin:8px 0">{{.Desc}}</p>
+    <div class="market-preview">
+      {{range .Templates}}<div class="market-row"><span>{{sceneLabel .Scene}}</span><b>{{.Name}}</b></div>{{end}}
+    </div>
+    <div class="group-actions">
+      <span class="tiny muted">安装后可在「文案与按钮」继续改</span>
+      <button class="btn btn-sm btn-primary" data-install-pack="{{.ID}}">安装</button>
+    </div>
+  </article>
+  {{end}}
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>导入模板包</h2><p>粘贴从本系统导出的 JSON，或手动编写模板数组</p></div><span class="tag tag-muted">JSON</span></div>
+  <label class="field"><span>模板 JSON <em>支持 {templates:[...]}</em></span><textarea id="market-json" rows="6" placeholder='{"templates":[{"name":"我的欢迎卡","scene":"welcome","body":"...","parse_mode":"HTML"}]}'></textarea></label>
+  <button class="btn btn-primary" id="market-import" style="width:100%;margin-top:8px">导入模板</button>
+</div>
+{{end}}

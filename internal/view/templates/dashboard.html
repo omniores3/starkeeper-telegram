@@ -1,0 +1,179 @@
+{{define "content"}}
+<section class="hero fade-in">
+  <div class="hero-copy">
+    <p class="greet">{{.Data.Greeting}}，{{.Admin.DisplayName}} ✦</p>
+    <h2>让今天群里的每一次相遇，<br><em>都被好好接住。</em></h2>
+    <p>{{.Slogan}}。欢迎语、验证、秩序与惊喜，都已经在这片小小的银河里就位。</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/groups">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        管理我的群组
+      </a>
+      <a class="btn" href="/templates">
+        <svg viewBox="0 0 24 24"><path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M3 9h18M9 21V9"/></svg>
+        编排欢迎卡片
+      </a>
+    </div>
+    <div class="hero-meta">
+      <div><b>{{.Data.Health.packets}}</b><span>进行中的红包</span></div>
+      <div><b>{{.Data.Health.campaigns}}</b><span>在线营销活动</span></div>
+      <div><b>{{.Data.Health.schedules}}</b><span>定时任务</span></div>
+      <div><b>{{.Data.Health.pending_verify}}</b><span>待验证成员</span></div>
+    </div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="hero-ring r1"></div><div class="hero-ring r2"></div><div class="hero-ring r3"></div>
+    <div class="hero-orb"></div><span class="hero-star"></span>
+    <div class="hero-chip c1"><span>🛡️</span><div><b>安全运行中</b><br>广告拦截已开启</div></div>
+    <div class="hero-chip c2"><span>✨</span><div><b>{{.Data.Health.ads}} 个广告位</b><br>自动轮播</div></div>
+  </div>
+</section>
+
+<section class="stat-grid">
+  {{range .Data.Stats}}
+  <article class="stat-card fade-in">
+    <div class="stat-top">
+      <span class="stat-label">{{.Label}}</span>
+      <span class="stat-icon {{.Tone}}">
+        {{if eq .Key "groups"}}<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>{{end}}
+        {{if eq .Key "members"}}<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 11h-6M20 8v6"/></svg>{{end}}
+        {{if eq .Key "checkin"}}<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18M8.5 15.5l2 2 4-4"/></svg>{{end}}
+        {{if eq .Key "verify"}}<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9 12l2 2 4-4"/></svg>{{end}}
+      </span>
+    </div>
+    <div class="stat-value">{{.Value}}</div>
+    <div class="stat-sub">{{.Sub}}</div>
+    <svg class="stat-spark" width="74" height="24" viewBox="0 0 74 24" fill="none">
+      <path d="M1 18 C10 18 12 8 21 10 S34 20 42 12 S56 4 64 9 S70 12 73 6" stroke="currentColor" stroke-width="1.3" opacity=".7"/>
+    </svg>
+  </article>
+  {{end}}
+</section>
+
+<section class="ops-strip fade-in">
+  {{range .Data.Ops}}
+  <div class="ops-item">
+    <span class="ops-label">{{.Label}}</span>
+    <b>{{.Value}}</b>
+    <small>{{.Sub}}</small>
+    <span class="ops-glow {{.Tone}}"></span>
+  </div>
+  {{end}}
+</section>
+
+<div class="grid-2">
+  <section class="card chart-card fade-in">
+    <div class="chart-head">
+      <div><h3>近 7 天的群脉搏</h3><p>签到、入群、验证与安全拦截的每日变化</p></div>
+      <div class="legend"><span><i class="l1"></i>签到</span><span><i class="l2"></i>入群</span><span><i class="l3"></i>验证</span></div>
+    </div>
+    <div class="chart-wrap">
+      <div id="activity-chart"></div>
+    </div>
+    <div class="chart-legend">
+      <span>✦ 数据来自星群管家的本地 SQLite</span>
+      <span style="margin-left:auto">UTC+8 · 实时</span>
+    </div>
+  </section>
+
+  <section class="card panel fade-in">
+    <div class="panel-head">
+      <div><h2>正在发生</h2><p>群里的每一次亮起</p></div>
+      <a class="btn btn-sm btn-ghost" href="/antispam">全部动态</a>
+    </div>
+    <div class="activity-list">
+      {{range .Data.Activities}}
+      <div class="activity-item">
+        <span class="activity-dot">
+          {{if eq .Kind "join"}}👋{{end}}{{if eq .Kind "verify"}}✅{{end}}{{if eq .Kind "checkin"}}📅{{end}}
+          {{if eq .Kind "redpacket"}}🧧{{end}}{{if eq .Kind "campaign"}}🎁{{end}}{{if eq .Kind "antispam"}}🛡️{{end}}
+          {{if eq .Kind "schedule"}}🕰️{{end}}{{if eq .Kind "ad"}}📣{{end}}{{if eq .Kind "points"}}✦{{end}}
+          {{if eq .Kind "security"}}🛡️{{end}}{{if eq .Kind "shop"}}🛍️{{end}}{{if eq .Kind "task"}}🎯{{end}}
+          {{if eq .Kind "star"}}⭐{{end}}{{if eq .Kind "ai"}}✦{{end}}{{if eq .Kind "ticket"}}🎫{{end}}
+        </span>
+        <div class="activity-body">
+          <p>{{.Detail}}</p>
+          <div class="activity-meta"><span class="activity-kind">{{.KindLabel}}</span><span>{{.GroupName}}</span></div>
+        </div>
+        <span class="activity-time">{{.When}}</span>
+      </div>
+      {{else}}
+      <div class="empty"><div class="empty-ico">✦</div><h3>还没有动态</h3><p>群组运行后，这里会像星图一样亮起来。</p></div>
+      {{end}}
+    </div>
+  </section>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel fade-in">
+    <div class="panel-head">
+      <div><h2>群组星图</h2><p>按成员规模排列的活跃群组</p></div>
+      <a class="btn btn-sm" href="/groups">管理全部</a>
+    </div>
+    <div class="table-wrap" style="border:0">
+      <table>
+        <thead><tr><th>群组</th><th>成员</th><th>状态</th><th>·</th></tr></thead>
+        <tbody>
+        {{range .Data.TopGroups}}
+        <tr>
+          <td><div class="person"><span class="avatar {{avatar .Title}}">{{initials .Title}}</span><div><strong>{{.Title}}</strong><small>@{{.Username}}</small></div></div></td>
+          <td>{{fmtNum .MemberCount}}</td>
+          <td>{{if .IsActive}}<span class="tag tag-emerald">运行中</span>{{else}}<span class="tag tag-muted">已暂停</span>{{end}}</td>
+          <td><a class="btn btn-sm btn-ghost" href="/groups/{{.ID}}">配置 →</a></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4"><div class="empty" style="padding:24px"><p>还没有接入群组</p></div></td></tr>
+        {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="stack">
+    <section class="card panel fade-in">
+      <div class="panel-head"><div><h2>下一次发送</h2><p>已排队的定时消息</p></div><a class="btn btn-sm" href="/schedules">排期</a></div>
+      <div class="activity-list">
+        {{range .Data.Schedules}}
+        <div class="activity-item">
+          <span class="activity-dot">🕰️</span>
+          <div class="activity-body"><p><b>{{.Name}}</b></p><div class="activity-meta"><span>{{modeLabel .Mode}}</span><span>{{if eq .GroupID 0}}全部群组{{else}}指定群组{{end}}</span></div></div>
+          <span class="activity-time">{{fmtTime .NextRunAt}}</span>
+        </div>
+        {{else}}
+        <div class="empty" style="padding:20px"><p>暂无排期</p></div>
+        {{end}}
+      </div>
+    </section>
+
+    <section class="card panel fade-in">
+      <div class="panel-head"><div><h2>安全防护</h2><p>今天的秩序由你定义</p></div><span class="tag {{if .Data.Health.raids}}tag-rose{{else}}tag-emerald{{end}}">{{if .Data.Health.raids}}防护中{{else}}已开启{{end}}</span></div>
+      <div class="info-list">
+        <div class="info-row"><span>待完成验证</span><b>{{.Data.Health.pending_verify}} 人</b></div>
+        <div class="info-row"><span>全局黑名单</span><b>{{.Data.Health.blacklist}} 人</b></div>
+        <div class="info-row"><span>进行中广告位</span><b>{{.Data.Health.ads}} 个</b></div>
+        <div class="info-row"><span>机器人状态</span><b>{{if .BotConnected}}{{.BotName}}{{else}}演示模式{{end}}</b></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <a class="btn btn-sm btn-soft" style="flex:1" href="/security">安全中心</a>
+        <a class="btn btn-sm btn-ghost" style="flex:1" href="/antispam">拦截规则</a>
+      </div>
+    </section>
+  </div>
+</div>
+
+<section class="card panel fade-in" style="margin-top:18px">
+  <div class="panel-head"><div><h2>最近审计</h2><p>管理员的每一步操作，都在这里留下记录</p></div><a class="btn btn-sm" href="/audit">查看全部</a></div>
+  <div class="table-wrap" style="border:0">
+    <table>
+      <thead><tr><th>时间</th><th>管理员</th><th>动作</th><th>详情</th></tr></thead>
+      <tbody>
+      {{range .Data.RecentAudit}}
+      <tr><td class="tiny nowrap">{{fmtTime .CreatedAt}}</td><td>{{.AdminName}}</td><td><span class="tag {{auditTone .Action}}">{{auditLabel .Action}}</span></td><td>{{.Detail}}</td></tr>
+      {{else}}
+      <tr><td colspan="4"><div class="empty" style="padding:20px"><p>暂无审计记录</p></div></td></tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{end}}

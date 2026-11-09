@@ -1,0 +1,68 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon amber" style="width:42px;height:42px;border-radius:12px;font-size:20px">⭐</span>
+    <div><h2 style="margin:0;font-size:15px">数字商品</h2><p class="small muted" style="margin:0">用 Telegram Stars 售卖会员、课程、资料包与卡密</p></div>
+  </div>
+  <div style="display:flex;gap:24px;margin-left:6px">
+    <div><span class="muted tiny">商品</span><div style="font-size:22px;font-weight:650">{{len .Data.Products}}</div></div>
+    <div><span class="muted tiny">成交</span><div style="font-size:22px;font-weight:650">{{.Data.OrdersN}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-primary" id="new-star-product">+ 新建商品</button>
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Products}}
+  <article class="group-card" data-star-product="{{.ID}}" style="padding:18px">
+    <div class="group-top">
+      <span class="group-avatar" style="background:linear-gradient(145deg,rgba(251,191,36,.3),rgba(139,92,246,.25));font-size:22px">⭐</span>
+      <div class="group-info"><h3>{{.Name}}</h3><p>{{.PriceStars}} Stars · {{if eq .Status "active"}}上架中{{else}}已下架{{end}}</p></div>
+      <span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{if eq .Status "active"}}在售{{else}}下架{{end}}</span>
+    </div>
+    <div class="row" style="gap:5px;margin:8px 0">
+      {{if eq .DeliveryMode "code_once"}}<span class="tag tag-cyan">一次性卡密</span><span class="tag tag-muted">剩余 {{.CodeUnused}} / {{.CodeTotal}}</span>
+      {{else if eq .DeliveryMode "code_reuse"}}<span class="tag tag-violet">重复卡密</span>
+      {{else}}<span class="tag tag-muted">固定内容 · 可重复</span>{{end}}
+    </div>
+    <p class="small muted" style="min-height:34px;margin:8px 0">{{.Description}}</p>
+    {{if eq .DeliveryMode "code_once"}}
+    <div class="code-block" style="max-height:58px;overflow:hidden;font-size:9px">支付成功时从卡密池分配一条未使用卡密，每条只能发放一次。</div>
+    {{else}}
+    <div class="code-block" style="max-height:58px;overflow:hidden;font-size:9px">{{rune .Content 90}}</div>
+    {{end}}
+    <div class="group-actions">
+      <span class="tiny muted">{{if eq .DeliveryMode "code_once"}}卡密池发货{{else if eq .DeliveryMode "code_reuse"}}重复卡密发货{{else}}固定内容发货{{end}}</span>
+      <div class="row" style="gap:5px">
+        {{if eq .DeliveryMode "code_once"}}<button class="btn btn-sm" data-star-codes>卡密</button>{{end}}
+        <button class="btn btn-sm" data-star-edit>编辑</button>
+        <button class="btn btn-sm btn-ghost" data-star-delete style="color:var(--rose)">删除</button>
+      </div>
+    </div>
+  </article>
+  {{end}}
+  <button class="group-add" id="new-star-product-2" type="button" style="min-height:190px"><span class="plus">＋</span><strong style="font-size:12.5px">新建数字商品</strong><span class="tiny">Stars 支付 · 固定内容 / 卡密</span></button>
+</div>
+
+<section class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>Stars 订单</h2><p>支付成功后会记录发放内容</p></div><span class="tag tag-amber">{{.Data.OrdersN}} 笔</span></div>
+  <div class="table-wrap">
+    <table><thead><tr><th>商品</th><th>买家</th><th>金额</th><th>发放内容</th><th>状态</th><th>时间</th></tr></thead><tbody>
+      {{range .Data.Orders}}
+      <tr><td>#{{.ProductID}}</td><td><div class="person"><span class="avatar">{{initials .FirstName}}</span><div><strong>{{.FirstName}}</strong><small>@{{.Username}} · {{.UserID}}</small></div></div></td><td><b>{{.Amount}} ⭐</b></td><td class="tiny" style="max-width:220px">{{if .Code}}<code>{{.Code}}</code>{{else}}{{rune .Delivered 40}}{{end}}</td><td><span class="tag {{if eq .Status "paid"}}tag-emerald{{else}}tag-amber{{end}}">{{.Status}}</span></td><td>{{fmtTime .CreatedAt}}</td></tr>
+      {{else}}
+      <tr><td colspan="6"><div class="empty" style="padding:30px"><p>还没有 Stars 订单</p></div></td></tr>
+      {{end}}
+    </tbody></table>
+  </div>
+</section>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>发放模式</h2><p>按商品选择卡密策略</p></div><span class="tag tag-cyan">XTR</span></div>
+  <div class="grid-3">
+    <div class="mode-card"><b>固定内容</b><p>每次支付都发送同一段内容，可重复使用。适合资料链接、群邀请、说明文档。</p></div>
+    <div class="mode-card"><b>一次性卡密</b><p>上传卡密池，每次支付原子领取一条未使用卡密，发完即止。适合兑换码、会员码。</p></div>
+    <div class="mode-card"><b>重复卡密</b><p>所有买家收到同一条卡密/口令，可重复使用。适合公开折扣码、通用口令。</p></div>
+  </div>
+</div>
+{{end}}

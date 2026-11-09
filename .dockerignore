@@ -1,0 +1,8 @@
+.git
+.env
+data
+bin
+docs
+*.exe
+*.log
+.chromeprofile

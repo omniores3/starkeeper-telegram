@@ -1,0 +1,60 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon violet" style="width:42px;height:42px;border-radius:12px;font-size:19px">💎</span>
+    <div><h2 style="margin:0;font-size:15px">会员计划</h2><p class="small muted" style="margin:0">用 Stars 售卖会员时长，让关系持续发生</p></div>
+  </div>
+  <div style="display:flex;gap:22px;margin-left:6px">
+    <div><span class="muted tiny">计划</span><div style="font-size:22px;font-weight:650">{{len .Data.Plans}}</div></div>
+    <div><span class="muted tiny">生效会员</span><div style="font-size:22px;font-weight:650">{{.Data.Active}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-primary" id="new-membership-plan">+ 新建计划</button>
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Plans}}
+  <article class="group-card" data-plan="{{.ID}}" style="padding:18px">
+    <div class="group-top">
+      <span class="group-avatar" style="background:linear-gradient(145deg,rgba(139,92,246,.28),rgba(251,191,36,.2));font-size:20px">💎</span>
+      <div class="group-info"><h3>{{.Name}}</h3><p>{{.PriceStars}} Stars / {{.Days}} 天</p></div>
+      <span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{if eq .Status "active"}}在售{{else}}下架{{end}}</span>
+    </div>
+    <p class="small muted" style="min-height:32px;margin:8px 0">{{.Description}}</p>
+    <div class="code-block" style="max-height:58px;overflow:hidden;font-size:9px">{{rune .Benefits 90}}</div>
+    <div class="group-actions">
+      <span class="tiny muted">支付后自动累加时长</span>
+      <div class="row" style="gap:5px">
+        <button class="btn btn-sm" data-plan-edit>编辑</button>
+        <button class="btn btn-sm btn-ghost" data-plan-delete style="color:var(--rose)">删除</button>
+      </div>
+    </div>
+  </article>
+  {{else}}
+  <div class="empty" style="padding:34px"><div class="empty-ico">💎</div><h3>还没有会员计划</h3><p>创建月卡或季卡，成员在群里发送 /member 即可购买。</p></div>
+  {{end}}
+  <button class="group-add" id="new-membership-plan-2" type="button" style="min-height:180px"><span class="plus">＋</span><strong style="font-size:12.5px">新建会员计划</strong><span class="tiny">Stars · 30 天 / 90 天</span></button>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>会员名单</h2><p>到期时间由支付成功后的回调自动累加</p></div><span class="tag tag-violet">{{.Data.Active}} 生效中</span></div>
+  <div class="table-wrap"><table><thead><tr><th>用户</th><th>计划</th><th>到期</th><th>状态</th></tr></thead><tbody>
+    {{range .Data.Members}}
+    <tr><td class="mono">{{.UserID}}</td><td>{{.PlanName}}</td><td>{{fmtTime .ExpiresAt}}</td><td>{{if eq .Status "active"}}<span class="tag tag-emerald">生效中</span>{{else}}<span class="tag tag-muted">已过期</span>{{end}}</td></tr>
+    {{else}}
+    <tr><td colspan="4"><div class="empty" style="padding:24px"><p>还没有会员</p></div></td></tr>
+    {{end}}
+  </tbody></table></div>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>会员订单</h2><p>Stars 支付记录</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>计划</th><th>用户</th><th>金额</th><th>状态</th><th>时间</th></tr></thead><tbody>
+    {{range .Data.Orders}}
+    <tr><td>#{{.PlanID}}</td><td>{{.FirstName}} @{{.Username}}</td><td>{{.Amount}} ⭐</td><td>{{.Status}}</td><td>{{fmtTime .CreatedAt}}</td></tr>
+    {{else}}
+    <tr><td colspan="5"><div class="empty" style="padding:24px"><p>还没有会员订单</p></div></td></tr>
+    {{end}}
+  </tbody></table></div>
+</div>
+{{end}}

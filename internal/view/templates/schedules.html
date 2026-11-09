@@ -1,0 +1,67 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;gap:26px">
+    <div><span class="muted tiny">定时任务</span><div style="font-size:25px;font-weight:650;letter-spacing:-.04em">{{len .Data.Schedules}}</div></div>
+    <div><span class="muted tiny">运行中</span><div style="font-size:25px;font-weight:650;letter-spacing:-.04em">{{.Data.Active}}</div></div>
+    <div><span class="muted tiny">累计送达</span><div style="font-size:25px;font-weight:650;letter-spacing:-.04em">{{fmtNum .Data.Sent}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="schedule-search" placeholder="搜索任务…">
+  </div>
+  <button class="btn btn-primary new-schedule-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建任务</button>
+</section>
+
+<div class="schedule-list" style="margin-top:18px">
+  {{range .Data.Schedules}}
+  <article class="schedule-item fade-in" data-schedule="{{.ID}}" data-name="{{.Name}}">
+    <div class="schedule-date">
+      {{if .NextRunAt}}<b>{{fmtShortDate .NextRunAt}}</b><span>{{fmtClock .NextRunAt}}</span>{{else}}<b>—</b><span>暂无</span>{{end}}
+    </div>
+    <div class="schedule-main">
+      <h3>{{.Name}}
+        <span class="tag {{if eq .Status "active"}}tag-emerald{{else if eq .Status "paused"}}tag-amber{{else}}tag-muted{{end}}">{{statusLabel .Status}}</span>
+        <span class="tag tag-violet">{{modeLabel .Mode}}</span>
+      </h3>
+      <p>{{rune (plain .Body) 90}}</p>
+      <div class="row" style="gap:13px;margin-top:5px">
+        <span class="tiny muted">📤 {{if eq .GroupID 0}}全部群组{{else}}{{index $.Data.GroupsMap .GroupID}}{{end}}</span>
+        <span class="tiny muted">✓ 已发送 {{.SentCount}} 次</span>
+        <span class="tiny muted">{{if .LastRunAt}}上次 {{fmtTime .LastRunAt}}{{else}}尚未发送{{end}}</span>
+      </div>
+    </div>
+    <div class="schedule-side">
+      <div class="next-run"><b>{{if .NextRunAt}}{{timeUntil .NextRunAt}}{{else}}—{{end}}</b><span>下一次</span></div>
+      <div class="schedule-actions">
+        <button data-run title="立即发送"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3Z"/></svg></button>
+        <button data-toggle title="启用或暂停">
+          {{if eq .Status "active"}}<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>{{else}}<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3Z"/></svg>{{end}}
+        </button>
+        <button data-edit title="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button data-delete title="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+    </div>
+  </article>
+  {{end}}
+</div>
+
+{{if not .Data.Schedules}}
+<div class="empty">
+  <div class="empty-ico">🕰️</div>
+  <h3>还没有定时任务</h3>
+  <p>把每日早安、周末精选或公告排进时间线。</p>
+  <button class="btn btn-primary new-schedule-btn" style="margin-top:14px">创建第一个任务</button>
+</div>
+{{end}}
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>时间表达式小抄</h2><p>支持每天、每周、固定间隔、单次与标准 5 段 Cron</p></div></div>
+  <div class="rule-grid">
+    <div class="rule-card"><span class="rule-ico">☀️</span><h4>每天 09:00</h4><p>模式「每天」+ 时间 09:00</p></div>
+    <div class="rule-card"><span class="rule-ico">📅</span><h4>每周五 20:00</h4><p>模式「每周」+ 勾选周五</p></div>
+    <div class="rule-card"><span class="rule-ico">⏱️</span><h4>每 2 小时</h4><p>模式「固定间隔」+ 120 分钟</p></div>
+    <div class="rule-card"><span class="rule-ico">🧩</span><h4>工作日 9 点</h4><p>Cron: <code>0 9 * * 1-5</code></p></div>
+  </div>
+</div>
+{{end}}

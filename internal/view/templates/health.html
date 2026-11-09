@@ -1,0 +1,46 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon emerald" style="width:42px;height:42px;border-radius:12px;font-size:20px">💚</span>
+    <div><h2 style="margin:0;font-size:15px">群组健康分</h2><p class="small muted" style="margin:0">广告量、签到率、活跃度、验证与工单的综合诊断</p></div>
+  </div>
+  <div class="spacer"></div>
+  <div style="text-align:right"><span class="muted tiny">平均分</span><div style="font-size:30px;font-weight:650;line-height:1.1">{{.Data.Average}}</div></div>
+  {{if .Data.Best}}<div class="row" style="gap:8px"><span class="tag tag-emerald">最佳 {{.Data.Best}}</span><span class="tag tag-rose">待改善 {{.Data.Worst}}</span></div>{{end}}
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Groups}}
+  <article class="group-card health-card" data-health-group="{{.Group.ID}}" style="padding:18px">
+    <div class="group-top">
+      <span class="group-avatar {{avatar .Group.Title}}">{{initials .Group.Title}}</span>
+      <div class="group-info"><h3>{{.Group.Title}}</h3><p>{{.Group.MemberCount}} 位成员 · 近 7 日</p></div>
+      <div class="health-badge {{if ge .Score 85}}good{{else if ge .Score 70}}ok{{else if ge .Score 55}}warn{{else}}bad{{end}}">
+        <b>{{.Score}}</b><small>{{.Level}}</small>
+      </div>
+    </div>
+    <div class="health-bar"><span style="width:{{.Score}}%"></span></div>
+    <div class="health-metrics">
+      <div><b>{{.Checkins}}</b><span>签到次数</span></div>
+      <div><b>{{.CheckRate}}%</b><span>签到覆盖率</span></div>
+      <div><b>{{.Activity}}</b><span>群内动态</span></div>
+      <div><b>{{.Spam}}</b><span>拦截广告</span></div>
+    </div>
+    <div class="health-tips">
+      {{range .Tips}}<div class="health-tip">→ {{.}}</div>{{end}}
+    </div>
+    <div class="group-actions">
+      <span class="tiny muted">待验证 {{.Pending}} · 待处理工单 {{.Tickets}} · 归档消息 {{.Messages}}</span>
+      <a class="btn btn-sm" href="/groups/{{.Group.ID}}">打开配置</a>
+    </div>
+  </article>
+  {{else}}
+  <div class="empty" style="padding:50px"><div class="empty-ico">🌱</div><h3>还没有群组</h3><p>接入群组后，这里会给出健康诊断。</p></div>
+  {{end}}
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>评分规则</h2><p>透明、可解释，不用黑盒</p></div><span class="tag tag-muted">0–100</span></div>
+  <p class="small muted" style="line-height:1.9;margin:0">基础分 45，叠加近 7 日签到覆盖率（最多 +40）与群内动态（最多 +15）；广告拦截、待验证、未处理工单会扣分。健康分只是运营提示，不替代对具体群情的判断。</p>
+</div>
+{{end}}

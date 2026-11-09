@@ -1,0 +1,82 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:13px">
+    <span class="stat-icon rose" style="width:42px;height:42px;border-radius:12px;font-size:20px">🧧</span>
+    <div><h2 style="margin:0;font-size:15px">积分红包</h2><p class="small muted" style="margin:0">把福利，变成群里的小小惊喜</p></div>
+  </div>
+  <div style="display:flex;gap:24px;margin-left:8px">
+    <div><span class="muted tiny">进行中</span><div style="font-size:22px;font-weight:650">{{.Data.Active}}</div></div>
+    <div><span class="muted tiny">已领取</span><div style="font-size:22px;font-weight:650">{{fmtNum .Data.Claimed}}</div></div>
+    <div><span class="muted tiny">已发放积分</span><div style="font-size:22px;font-weight:650">{{fmtNum .Data.Points}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-primary" id="new-packet-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>发红包</button>
+</section>
+
+<div class="packet-grid" style="margin-top:18px">
+  {{range .Data.Packets}}
+  <article class="packet-card fade-in" data-packet="{{.ID}}">
+    <div class="packet-cover">
+      <span class="packet-emoji">🧧</span>
+      <div style="min-width:0">
+        <div class="row" style="gap:6px;margin-bottom:2px">
+          <span class="tag {{if eq .Status "active"}}tag-emerald{{else if eq .Status "finished"}}tag-violet{{else if eq .Status "expired"}}tag-muted{{else}}tag-amber{{end}}">{{statusLabel .Status}}</span>
+          <span class="tag tag-muted">{{if eq .Mode "equal"}}均分{{else}}拼手气{{end}}</span>
+        </div>
+        <h3>{{.Title}}</h3>
+        <p>{{if .Note}}{{.Note}}{{else}}点击按钮试试手气{{end}}</p>
+      </div>
+    </div>
+    <div class="packet-body">
+      <div class="packet-stats">
+        <div><span>总积分</span><b>{{fmtNum .TotalPoints}}</b></div>
+        <div><span>红包个数</span><b>{{.TotalCount}}</b></div>
+        <div><span>已领取</span><b>{{.ClaimedCount}}</b></div>
+      </div>
+      <div class="progress"><i style="width:{{percent .ClaimedCount .TotalCount}}%"></i></div>
+      <div class="row" style="justify-content:space-between;margin-top:9px">
+        <span class="tiny muted">📍 {{index $.Data.GroupsMap .GroupID}}</span>
+        <span class="tiny muted">{{if .ExpireAt}}至 {{fmtTime .ExpireAt}}{{end}}</span>
+      </div>
+      <div class="packet-foot">
+        <div class="row" style="gap:5px">
+          {{if eq .Status "draft"}}<button class="btn btn-sm btn-primary" data-send>立即发送</button>{{end}}
+          {{if or (eq .Status "active") (eq .Status "paused")}}<button class="btn btn-sm" data-pause data-status="{{.Status}}">{{if eq .Status "paused"}}恢复{{else}}暂停{{end}}</button>{{end}}
+          <button class="btn btn-sm btn-ghost" data-view>领取记录</button>
+        </div>
+        <button class="btn btn-sm btn-ghost" data-delete style="color:var(--rose)">删除</button>
+      </div>
+    </div>
+  </article>
+  {{end}}
+</div>
+
+{{if not .Data.Packets}}
+<div class="empty">
+  <div class="empty-ico">🧧</div>
+  <h3>还没有红包</h3>
+  <p>发一个拼手气红包，让群里热闹起来。</p>
+</div>
+{{end}}
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel">
+    <div class="panel-head"><div><h2>红包玩法</h2><p>积分红包由群积分体系发放</p></div></div>
+    <div class="setup-steps">
+      <div class="setup-step">创建红包：设置总积分、个数、拼手气或均分。</div>
+      <div class="setup-step">选择卡片模板，自定义标题、祝福和按钮文字。</div>
+      <div class="setup-step">点击「立即发送」后群友即可点击领取，积分自动入账。</div>
+      <div class="setup-step">过期或抢完后自动结束，领取记录可随时回看。</div>
+    </div>
+  </section>
+  <section class="card panel">
+    <div class="panel-head"><div><h2>发放须知</h2><p>红包领取是公开、公平的</p></div></div>
+    <div class="info-list">
+      <div class="info-row"><span>领取限制</span><b>每位成员限领 1 次</b></div>
+      <div class="info-row"><span>分配方式</span><b>拼手气随机 / 均分</b></div>
+      <div class="info-row"><span>积分来源</span><b>群积分账户</b></div>
+      <div class="info-row"><span>默认有效期</span><b>创建后 48 小时</b></div>
+    </div>
+  </section>
+</div>
+{{end}}

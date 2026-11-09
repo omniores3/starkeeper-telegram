@@ -1,0 +1,114 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 22px">
+  <div style="display:flex;align-items:center;gap:11px">
+    <span class="stat-icon amber" style="width:38px;height:38px;border-radius:11px"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18M8.5 15.5l2 2 4-4"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">签到看板</h2><p class="small muted" style="margin:0">让每一次出现，都有回响</p></div>
+  </div>
+  <div class="spacer"></div>
+  <select id="checkin-group" style="width:auto;min-width:190px">
+    {{range .Data.Groups}}<option value="{{.ID}}" {{if and $.Data.Selected (eq $.Data.Selected.ID .ID)}}selected{{end}}>{{.Title}}</option>{{end}}
+  </select>
+  <button class="btn manual-adjust-btn">手动调整积分</button>
+  <a class="btn btn-ghost" href="/templates">签到模板 →</a>
+</section>
+
+{{if .Data.Selected}}
+<section class="stat-grid">
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">今日签到（全部群）</span><span class="stat-icon amber">✦</span></div><div class="stat-value">{{.Data.TodayCount}}</div><div class="stat-sub">今日发出 {{fmtNum .Data.PointsToday}} {{.Currency}}</div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">本群积分账户</span><span class="stat-icon violet">👤</span></div><div class="stat-value">{{len .Data.Accounts}}</div><div class="stat-sub">有积分记录的成员</div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">覆盖成员</span><span class="stat-icon cyan">◎</span></div><div class="stat-value">{{fmtNum .Data.TotalMembers}}</div><div class="stat-sub">全部群组累计</div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">基础签到奖励</span><span class="stat-icon rose">🎁</span></div><div class="stat-value">{{.Data.Settings.CheckinMinPoints}}–{{.Data.Settings.CheckinMaxPoints}}</div><div class="stat-sub">连续加成 +{{.Data.Settings.CheckinStreakBonus}} / 天</div></article>
+</section>
+
+<div class="grid-2">
+  <section class="card panel fade-in">
+    <div class="panel-head">
+      <div><h2>本群积分榜</h2><p>签到、活动、红包都会累计到这里</p></div>
+      <span class="tag tag-amber">TOP 10</span>
+    </div>
+    <div class="podium">
+      {{range $i, $a := .Data.Leaderboard}}{{if lt $i 3}}
+      <div class="podium-card place-{{add $i 1}}">
+        <span class="medal">{{if eq $i 0}}🥇{{else if eq $i 1}}🥈{{else}}🥉{{end}}</span>
+        <span class="avatar {{avatar $a.FirstName}}">{{initials $a.FirstName}}</span>
+        <h4>{{$a.FirstName}}</h4>
+        <p>@{{$a.Username}}</p>
+        <b>{{fmtNum $a.Balance}}</b>
+      </div>
+      {{end}}{{end}}
+    </div>
+    {{if not .Data.Leaderboard}}
+    <div class="empty" style="padding:32px 10px"><div class="empty-ico">🏆</div><h3>还没有人上榜</h3><p>发送 /checkin 抢占第一名。</p></div>
+    {{end}}
+    <div class="table-wrap" style="margin-top:16px;border:0">
+      <table>
+        <thead><tr><th>#</th><th>成员</th><th>累计获得</th><th>积分</th><th></th></tr></thead>
+        <tbody>
+        {{range $i, $a := .Data.Leaderboard}}
+        <tr>
+          <td><span class="rank-no {{if eq $i 0}}top1{{end}}{{if eq $i 1}}top2{{end}}{{if eq $i 2}}top3{{end}}">{{add $i 1}}</span></td>
+          <td><div class="person"><span class="avatar {{avatar $a.FirstName}}">{{initials $a.FirstName}}</span><div><strong>{{$a.FirstName}}</strong><small>@{{$a.Username}}</small></div></div></td>
+          <td>{{fmtNum $a.TotalEarned}}</td>
+          <td><b style="color:var(--amber)">{{fmtNum $a.Balance}}</b></td>
+          <td><button class="btn btn-sm btn-ghost" data-adjust="{{$a.UserID}}">调整</button></td>
+        </tr>
+        {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="stack">
+    <section class="card panel fade-in">
+      <div class="panel-head"><div><h2>最近签到</h2><p>本群最新的签到记录</p></div><span class="tag tag-emerald">实时</span></div>
+      <div class="activity-list">
+        {{range .Data.Checkins}}
+        <div class="activity-item">
+          <span class="activity-dot">📅</span>
+          <div class="activity-body"><p><b>{{.FirstName}}</b> 签到获得 <b>+{{.Points}}</b> {{$.Currency}}，连续 <b>{{.Streak}}</b> 天</p><div class="activity-meta"><span>{{.Day}}</span><span class="activity-kind">签到</span></div></div>
+          <span class="activity-time">{{timeAgo .CreatedAt}}</span>
+        </div>
+        {{else}}
+        <div class="empty" style="padding:24px"><p>今天还没有签到记录</p></div>
+        {{end}}
+      </div>
+    </section>
+
+    <section class="card panel fade-in">
+      <div class="panel-head"><div><h2>积分规则</h2><p>在群组设置中可以随时调整</p></div><a class="btn btn-sm" href="/groups/{{.Data.Selected.ID}}?tab=checkin">修改</a></div>
+      <div class="info-list">
+        <div class="info-row"><span>基础奖励</span><b>{{.Data.Settings.CheckinMinPoints}} – {{.Data.Settings.CheckinMaxPoints}} {{.Currency}}</b></div>
+        <div class="info-row"><span>连续签到加成</span><b>+{{.Data.Settings.CheckinStreakBonus}} / 天</b></div>
+        <div class="info-row"><span>签到状态</span><b>{{if .Data.Settings.CheckinEnabled}}已开启{{else}}已关闭{{end}}</b></div>
+        <div class="info-row"><span>群内命令</span><b class="mono">/checkin</b></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<section class="card panel fade-in" style="margin-top:18px">
+  <div class="panel-head"><div><h2>积分账户</h2><p>可按用户 ID 手动补发或扣除积分</p></div><button class="btn btn-sm manual-adjust-btn">手动调整</button></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>成员</th><th>余额</th><th>累计获得</th><th>累计消耗</th><th>最后变动</th><th></th></tr></thead>
+      <tbody>
+      {{range .Data.Accounts}}
+      <tr>
+        <td><div class="person"><span class="avatar {{avatar .FirstName}}">{{initials .FirstName}}</span><div><strong>{{.FirstName}}</strong><small>@{{.Username}} · {{.UserID}}</small></div></div></td>
+        <td><b>{{fmtNum .Balance}}</b></td>
+        <td class="amount-pos">+{{fmtNum .TotalEarned}}</td>
+        <td class="amount-neg">-{{fmtNum .TotalSpent}}</td>
+        <td>{{timeAgo .UpdatedAt}}</td>
+        <td><button class="btn btn-sm btn-ghost" data-adjust="{{.UserID}}">调整</button></td>
+      </tr>
+      {{else}}
+      <tr><td colspan="6"><div class="empty" style="padding:30px"><p>本群还没有积分账户</p></div></td></tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{else}}
+<div class="empty"><div class="empty-ico">📅</div><h3>还没有群组</h3><p>先接入一个群组，再开始签到与积分运营。</p><a class="btn btn-primary" href="/groups" style="margin-top:14px">去接入群组</a></div>
+{{end}}
+{{end}}

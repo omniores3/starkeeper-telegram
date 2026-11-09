@@ -1,0 +1,40 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon cyan" style="width:42px;height:42px;border-radius:12px;font-size:19px">🔗</span>
+    <div><h2 style="margin:0;font-size:15px">邀请裂变</h2><p class="small muted" style="margin:0">让老成员带来新成员，并把贡献记在账上</p></div>
+  </div>
+  <div style="display:flex;gap:22px;margin-left:6px">
+    <div><span class="muted tiny">邀请链接</span><div style="font-size:22px;font-weight:650">{{len .Data.Invites}}</div></div>
+    <div><span class="muted tiny">通过邀请入群</span><div style="font-size:22px;font-weight:650">{{.Data.Joins}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <form class="row" id="invite-settings" style="gap:8px">
+    <label class="field" style="min-width:150px"><span>每位新成员奖励积分</span><input type="number" id="invite-reward" value="{{.Data.Reward}}" min="0"></label>
+    <button class="btn btn-primary" type="submit" style="align-self:flex-end">保存</button>
+  </form>
+</section>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>邀请榜</h2><p>成员在群里发送 `/invite` 生成专属链接</p></div><span class="tag tag-cyan">实时</span></div>
+  <div class="table-wrap">
+    <table><thead><tr><th>邀请人</th><th>专属链接</th><th>使用 / 入群</th><th>创建时间</th></tr></thead><tbody>
+      {{range .Data.Invites}}
+      <tr><td><div class="person"><span class="avatar">{{initials .FirstName}}</span><div><strong>{{.FirstName}}</strong><small>@{{.Username}} · {{.InviterID}}</small></div></div></td><td><code class="tiny">{{.Link}}</code></td><td><b>{{.Uses}}</b> / <b style="color:var(--emerald)">{{.Joins}}</b></td><td class="tiny">{{fmtTime .CreatedAt}}</td></tr>
+      {{else}}
+      <tr><td colspan="4"><div class="empty" style="padding:36px"><div class="empty-ico">🔗</div><h3>还没有邀请链接</h3><p>成员发送 /invite 后，这里会出现专属链接和入群统计。</p></div></td></tr>
+      {{end}}
+    </tbody></table>
+  </div>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>工作方式</h2><p>只统计通过专属链接入群的成员</p></div><span class="tag tag-amber">Telegram 原生</span></div>
+  <div class="setup-steps">
+    <div class="setup-step">成员发送 `/invite`，机器人调用 `createChatInviteLink` 生成带名字的专属链接。</div>
+    <div class="setup-step">新成员通过链接入群时，Telegram 的 `chat_member` 更新会带回 invite_link。</div>
+    <div class="setup-step">机器人匹配链接、记录邀请关系，并给邀请人加积分；管理员可在积分流水看到来源。</div>
+    <div class="setup-step">邀请奖励可在上方调整；0 表示只统计，不发积分。</div>
+  </div>
+</div>
+{{end}}

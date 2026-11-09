@@ -1,0 +1,77 @@
+﻿{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:13px">
+    <span class="stat-icon cyan" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1Z"/><path d="M15 8a4 4 0 0 1 0 9M18 5a8 8 0 0 1 0 15"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">广告管理</h2><p class="small muted" style="margin:0">推广有度，秩序有光</p></div>
+  </div>
+  <div style="display:flex;gap:24px;margin-left:8px">
+    <div><span class="muted tiny">广告位</span><div style="font-size:22px;font-weight:650">{{len .Data.Ads}}</div></div>
+    <div><span class="muted tiny">轮播中</span><div style="font-size:22px;font-weight:650">{{.Data.Active}}</div></div>
+    <div><span class="muted tiny">今日拦截</span><div style="font-size:22px;font-weight:650">{{.Data.Blocked}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-primary" id="new-ad-btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建广告位</button>
+</section>
+
+<div class="ad-grid" style="margin-top:18px">
+  {{range .Data.Ads}}
+  <article class="ad-card fade-in" data-ad="{{.ID}}">
+    <span class="ad-icon"><svg viewBox="0 0 24 24"><path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1Z"/><path d="M15 8a4 4 0 0 1 0 9"/></svg></span>
+    <div style="flex:1;min-width:0">
+      <div class="row" style="gap:6px;margin-bottom:2px">
+        <h3>{{.Name}}</h3>
+        <span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{statusLabel .Status}}</span>
+      </div>
+      <p>{{rune (plain .Body) 90}}</p>
+      <div class="ad-meta">
+        <span>📍 {{if eq .GroupID 0}}全部群组{{else}}{{index $.Data.GroupsMap .GroupID}}{{end}}</span>
+        <span>⏱ 每 {{.IntervalMinutes}} 分钟</span>
+        <span>✓ 已投放 {{.SentCount}} 次</span>
+      </div>
+    </div>
+    <div class="ad-actions">
+      <button data-send title="立即投放"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3Z"/></svg></button>
+      <button data-toggle title="启用/暂停">
+        {{if eq .Status "active"}}<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>{{else}}<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3Z"/></svg>{{end}}
+      </button>
+      <button data-edit title="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      <button data-delete title="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+    </div>
+  </article>
+  {{end}}
+</div>
+
+{{if not .Data.Ads}}
+<div class="empty">
+  <div class="empty-ico">📣</div>
+  <h3>还没有广告位</h3>
+  <p>创建一个轮播广告位，把课程、活动或合作推广自然地放进群里。</p>
+</div>
+{{end}}
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel">
+    <div class="panel-head"><div><h2>最近广告拦截</h2><p>保护群聊的安静，也保护你的推广</p></div><a class="btn btn-sm btn-ghost" href="/antispam">拦截面板</a></div>
+    <div class="log-list">
+      {{range .Data.Logs}}
+      <div class="log-item">
+        <span class="log-icon"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>
+        <div class="log-content"><strong>{{.FirstName}} <span class="muted">@{{.Username}}</span></strong><p>{{.Content}}</p><div class="log-meta"><span>{{.Reason}}</span><span class="tag tag-rose">{{.Action}}</span><span>{{timeAgo .CreatedAt}}</span></div></div>
+      </div>
+      {{else}}
+      <div class="empty" style="padding:24px"><p>暂无拦截记录</p></div>
+      {{end}}
+    </div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head"><div><h2>投放建议</h2><p>有节制的推广更受欢迎</p></div></div>
+    <div class="setup-steps">
+      <div class="setup-step">同一群组建议 6–12 小时轮播一次，避免打扰。</div>
+      <div class="setup-step">在晚间 20:00–22:00 投放，通常获得更高的点击。</div>
+      <div class="setup-step">文案保持简洁，按钮只保留一个明确的行动点。</div>
+      <div class="setup-step">广告位与广告拦截互不冲突，机器人消息不会被拦截。</div>
+    </div>
+  </section>
+</div>
+{{end}}

@@ -1,0 +1,105 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon rose" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9 12l2 2 4-4"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">安全中心</h2><p class="small muted" style="margin:0">防炸群 · 入群频率防护 · 全局黑名单</p></div>
+  </div>
+  <div class="spacer"></div>
+  <select id="security-group" style="width:auto;min-width:190px">
+    {{range .Data.Groups}}<option value="{{.ID}}" {{if and $.Data.Selected (eq $.Data.Selected.ID .ID)}}selected{{end}}>{{.Title}}</option>{{end}}
+  </select>
+  <button class="btn btn-primary" id="add-blacklist-btn">加入黑名单</button>
+</section>
+
+{{if .Data.Selected}}
+<div class="stat-grid">
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">全局黑名单</span><span class="stat-icon rose">⛔</span></div><div class="stat-value">{{.Data.BlackCount}}</div><div class="stat-sub">生效中的封禁用户</div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">本群最近 1 小时入群</span><span class="stat-icon cyan">👥</span></div><div class="stat-value">{{.Data.RecentJoins}}</div><div class="stat-sub">用于判断是否异常涌入</div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">防护状态</span><span class="stat-icon amber">🛡️</span></div><div class="stat-value" style="font-size:20px;padding-top:6px">{{if .Data.RaidActive}}防护中{{else if .Data.Security.AntiraidEnabled}}监听中{{else}}已关闭{{end}}</div><div class="stat-sub">{{if .Data.RaidActive}}防护至 {{fmtTime .Data.Security.RaidUntil}}{{else}}阈值自动触发{{end}}</div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">入群阈值</span><span class="stat-icon violet">⚡</span></div><div class="stat-value">{{.Data.Security.JoinLimit}}</div><div class="stat-sub">{{.Data.Security.WindowSec}} 秒内超过即触发</div></article>
+</div>
+
+<div class="grid-2">
+  <section class="setting-card card">
+    <div class="panel-head"><div><h3>防炸群策略</h3><p>短时间大量加群时自动进入防护期，拦截后续新成员。</p></div>
+      {{if .Data.RaidActive}}<button class="btn btn-sm btn-danger" id="unlock-raid">解除防护</button>{{end}}
+    </div>
+    <form id="security-form">
+      <div class="switch-row">
+        <div><strong>启用入群频率防护</strong><small>超过阈值自动踢出/拉黑新成员并提醒管理员</small></div>
+        <label class="switch"><input type="checkbox" name="antiraid_enabled" {{if .Data.Security.AntiraidEnabled}}checked{{end}}><span></span></label>
+      </div>
+      <div class="field-row-3" style="margin-top:14px">
+        <label class="field"><span>入群阈值（人）</span><input type="number" name="join_limit" value="{{.Data.Security.JoinLimit}}" min="2" max="1000"></label>
+        <label class="field"><span>统计窗口（秒）</span><input type="number" name="window_sec" value="{{.Data.Security.WindowSec}}" min="10" max="3600"></label>
+        <label class="field"><span>防护持续（秒）</span><input type="number" name="raid_duration_sec" value="{{.Data.Security.RaidDurationSec}}" min="60" max="86400"></label>
+      </div>
+      <div class="field-row">
+        <label class="field"><span>触发后动作</span>
+          <select name="action">
+            <option value="kick_blacklist" {{if eq .Data.Security.Action "kick_blacklist"}}selected{{end}}>踢出并加入全局黑名单</option>
+            <option value="kick" {{if eq .Data.Security.Action "kick"}}selected{{end}}>仅踢出</option>
+            <option value="ban" {{if eq .Data.Security.Action "ban"}}selected{{end}}>永久封禁</option>
+          </select>
+        </label>
+        <label class="field" style="justify-content:flex-end"><span>自动黑名单</span>
+          <span class="row"><label class="switch"><input type="checkbox" name="auto_blacklist" {{if .Data.Security.AutoBlacklist}}checked{{end}}><span></span></label><span class="small muted">触发时同步写入</span></span>
+        </label>
+      </div>
+      <div class="field-hint" style="margin-bottom:14px">提醒会发送到群内。防护期内所有新成员都会被立即处理，直到你手动解除或防护期结束。</div>
+      <button class="btn btn-primary" id="security-save" type="submit" style="width:100%">保存防护设置</button>
+    </form>
+  </section>
+
+  <section class="setting-card card">
+    <div class="panel-head"><div><h3>最近入群事件</h3><p>该群最近 20 次加入记录</p></div><span class="tag tag-cyan">实时</span></div>
+    <div class="activity-list">
+      {{range .Data.Joins}}
+      <div class="activity-item">
+        <span class="activity-dot">👤</span>
+        <div class="activity-body"><p>用户 <code>{{.UserID}}</code> 加入群聊</p><div class="activity-meta"><span>入群事件</span></div></div>
+        <span class="activity-time">{{timeAgo .CreatedAt}}</span>
+      </div>
+      {{else}}
+      <div class="empty" style="padding:24px"><p>还没有入群事件</p></div>
+      {{end}}
+    </div>
+  </section>
+</div>
+{{end}}
+
+<section class="card panel" style="margin-top:18px">
+  <div class="panel-head">
+    <div><h2>全局黑名单</h2><p>命中黑名单的用户入群会被立即封禁，并在发言时被移除</p></div>
+    <div class="row">
+      <form method="get" action="/security" class="row" style="gap:6px">
+        <input name="q" value="{{.Data.Query}}" placeholder="搜索用户 ID / 用户名" style="width:210px;height:34px">
+        <button class="btn btn-sm">搜索</button>
+      </form>
+      <button class="btn btn-sm btn-primary" id="add-blacklist-btn-2">+ 加入</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>用户</th><th>原因</th><th>来源</th><th>状态</th><th>到期</th><th></th></tr></thead>
+      <tbody>
+      {{range .Data.Blacklist}}
+      <tr>
+        <td><div class="person"><span class="avatar avatar-sm av-rose">{{initials .FirstName}}</span><div><strong>{{.FirstName}}</strong><small>@{{.Username}} · {{.UserID}}</small></div></div></td>
+        <td>{{if .Reason}}{{.Reason}}{{else}}—{{end}}</td>
+        <td><span class="tag {{if eq .Source "raid"}}tag-rose{{else}}tag-muted{{end}}">{{if eq .Source "raid"}}防炸群{{else if eq .Source "auto"}}自动{{else}}手动{{end}}</span></td>
+        <td>{{if .Active}}<span class="tag tag-rose">生效中</span>{{else}}<span class="tag tag-muted">已停用</span>{{end}}</td>
+        <td class="tiny">{{if eq .ExpiresAt 0}}永久{{else}}{{fmtTime .ExpiresAt}}{{end}}</td>
+        <td><div class="row" style="gap:4px;justify-content:flex-end">
+          <button class="btn btn-sm btn-ghost" data-bl-toggle="{{.ID}}" data-active="{{if .Active}}1{{else}}0{{end}}">{{if .Active}}停用{{else}}启用{{end}}</button>
+          <button class="btn btn-sm btn-ghost" data-bl-delete="{{.ID}}" style="color:var(--rose)">删除</button>
+        </div></td>
+      </tr>
+      {{else}}
+      <tr><td colspan="6"><div class="empty" style="padding:40px"><div class="empty-ico">🛡️</div><h3>黑名单是空的</h3><p>被防炸群命中的账号或手动添加的广告号会出现在这里。</p></div></td></tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{end}}

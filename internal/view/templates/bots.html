@@ -1,0 +1,45 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon violet" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><rect x="3" y="8" width="10" height="10" rx="2"/><rect x="13" y="4" width="8" height="8" rx="2"/><path d="M8 18v2M18 12v2"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">机器人账号</h2><p class="small muted" style="margin:0">一套控制台，管理多个 Bot 与各自的群聊</p></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="tag tag-cyan">{{len .Data.Bots}} 个账号</span>
+  <button class="btn btn-primary" id="new-bot-account">+ 添加机器人</button>
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Bots}}
+  <article class="group-card" data-bot-account="{{.ID}}" style="padding:18px">
+    <div class="group-top">
+      <span class="group-avatar" style="background:linear-gradient(145deg,rgba(34,211,238,.25),rgba(139,92,246,.25));font-size:20px">🤖</span>
+      <div class="group-info"><h3>{{.Name}} {{if .IsPrimary}}<span class="tag tag-violet" style="font-size:8px">主</span>{{end}}</h3><p>{{if .Username}}@{{.Username}}{{else}}未获取到用户名{{end}}</p></div>
+      <span class="status-dot {{if .Connected}}is-online{{end}}" title="{{if .Connected}}在线{{else}}离线{{end}}"></span>
+    </div>
+    <div class="group-meta">
+      <div><b>{{.Groups}}</b><span>绑定群组</span></div>
+      <div><b>{{if .TelegramID}}{{.TelegramID}}{{else}}—{{end}}</b><span>Bot ID</span></div>
+      <div><b>{{if .Connected}}在线{{else}}离线{{end}}</b><span>状态</span></div>
+    </div>
+    <div class="group-actions">
+      <span class="tiny muted">{{if .IsPrimary}}主机器人负责默认群组与主动发送{{else}}独立轮询，群组按加入时自动绑定{{end}}</span>
+      <div class="row" style="gap:5px">
+        {{if not .IsPrimary}}<button class="btn btn-sm" data-bot-reconnect>重连</button><button class="btn btn-sm btn-ghost" data-bot-delete style="color:var(--rose)">删除</button>{{else}}<a class="btn btn-sm" href="/bot">管理 Token</a>{{end}}
+      </div>
+    </div>
+  </article>
+  {{end}}
+  <button class="group-add" id="new-bot-account-2" type="button" style="min-height:190px"><span class="plus">＋</span><strong style="font-size:12.5px">添加机器人</strong><span class="tiny">代运营 · 多账号 · 独立群组</span></button>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>多机器人如何工作</h2><p>每个群只属于一个机器人</p></div><span class="tag tag-amber">Beta</span></div>
+  <div class="setup-steps">
+    <div class="setup-step">主机器人继续使用「机器人」页面里现有的 Token 与群组。</div>
+    <div class="setup-step">添加第二、第三个机器人，用各自的 Token 启动独立长轮询。</div>
+    <div class="setup-step">机器人被拉进群后，群组会自动绑定到该机器人；欢迎、验证、签到、广告拦截、积分与命令都在该群独立运行。</div>
+    <div class="setup-step">定时发送、广告与红包会按群组选择对应机器人；跨多个机器人的活动以各自机器人发送。</div>
+  </div>
+</div>
+{{end}}

@@ -1,0 +1,55 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon cyan" style="width:42px;height:42px;border-radius:12px;font-size:19px">📊</span>
+    <div><h2 style="margin:0;font-size:15px">周报与告警</h2><p class="small muted" style="margin:0">把群里的变化，变成可以行动的信号</p></div>
+  </div>
+  <div class="spacer"></div>
+  {{if .Data.OpenAlerts}}<span class="tag tag-rose">{{.Data.OpenAlerts}} 个待处理告警</span>{{else}}<span class="tag tag-emerald">暂无告警</span>{{end}}
+  <button class="btn btn-primary" id="generate-report">生成本周周报</button>
+</section>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="setting-card card">
+    <div class="panel-head"><div><h3>周报推送</h3><p>每周一 09:00 自动生成；也可以手动生成</p></div><span class="tag tag-cyan">报告</span></div>
+    <form id="report-form">
+      <label class="field"><span>推送到 Chat ID <em>可选</em></span><input id="report-chat" value="{{.Data.ReportChat}}" placeholder="例如 -1001234567890"></label>
+      <div class="field-row">
+        <label class="field"><span>入群告警阈值 / 小时</span><input type="number" id="alert-join" value="{{.Data.AlertJoin}}" min="1"></label>
+        <label class="field"><span>广告告警阈值 / 小时</span><input type="number" id="alert-spam" value="{{.Data.AlertSpam}}" min="1"></label>
+      </div>
+      <div class="switch-row">
+        <div><strong>启用异常告警</strong><small>入群暴增、广告暴增、机器人离线、卡密售罄</small></div>
+        <label class="switch"><input type="checkbox" id="alert-on" {{if .Data.AlertOn}}checked{{end}}><span></span></label>
+      </div>
+      <button class="btn btn-primary" id="report-save" type="submit" style="width:100%;margin-top:8px">保存周报设置</button>
+    </form>
+    <div class="field-hint" style="margin-top:12px">告警会写入下方列表，并在配置 Chat ID 后推送到 Telegram；同类告警 1 小时内只提醒一次。</div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head"><div><h2>告警</h2><p>最近 30 条异常信号</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>类型</th><th>内容</th><th>时间</th><th></th></tr></thead><tbody>
+      {{range .Data.Alerts}}
+      <tr><td><span class="tag {{if eq .Status "open"}}tag-rose{{else}}tag-muted{{end}}">{{.Kind}}</span></td><td class="tiny" style="max-width:300px">{{.Message}}</td><td class="tiny">{{timeAgo .CreatedAt}}</td><td>{{if eq .Status "open"}}<button class="btn btn-sm btn-ghost" data-alert-close="{{.ID}}">关闭</button>{{end}}</td></tr>
+      {{else}}
+      <tr><td colspan="4"><div class="empty" style="padding:24px"><p>暂无告警</p></div></td></tr>
+      {{end}}
+    </tbody></table></div>
+  </section>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>历史周报</h2><p>最近 20 份</p></div></div>
+  <div class="report-list">
+    {{range .Data.Reports}}
+    <article class="report-card">
+      <div class="report-head"><span class="tag tag-violet">{{.Kind}}</span><span class="tiny muted">{{fmtTime .CreatedAt}}</span></div>
+      <div class="report-body">{{safeHTML .Content}}</div>
+    </article>
+    {{else}}
+    <div class="empty" style="padding:34px"><div class="empty-ico">📊</div><h3>还没有周报</h3><p>点击右上角生成第一份。</p></div>
+    {{end}}
+  </div>
+</div>
+{{end}}

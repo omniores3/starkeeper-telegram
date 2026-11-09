@@ -1,0 +1,55 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon cyan" style="width:40px;height:40px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">审计日志</h2><p class="small muted" style="margin:0">每一次管理动作，都有迹可循</p></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="tag tag-violet">{{fmtNum .Data.Total}} 条记录</span>
+</section>
+
+<form class="toolbar" method="get" action="/audit" style="margin-top:16px">
+  <div class="toolbar-left">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input name="q" value="{{.Data.Query}}" placeholder="搜索详情、目标…">
+    </div>
+    <select name="action" style="width:auto;min-width:150px">
+      <option value="">全部动作</option>
+      {{range .Data.Actions}}<option value="{{.}}" {{if eq $.Data.Action .}}selected{{end}}>{{auditLabel .}}</option>{{end}}
+    </select>
+    <input name="admin" value="{{.Data.Admin}}" placeholder="管理员" style="width:130px">
+    <button class="btn" type="submit">筛选</button>
+    {{if or .Data.Action .Data.Admin .Data.Query}}<a class="btn btn-ghost" href="/audit">清空</a>{{end}}
+  </div>
+  <div class="toolbar-right"><span class="tiny muted">记录管理员操作，不记录群成员聊天内容</span></div>
+</form>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>时间</th><th>管理员</th><th>动作</th><th>详情</th><th>目标</th><th>IP</th></tr></thead>
+    <tbody>
+    {{range .Data.Logs}}
+    <tr>
+      <td class="nowrap tiny">{{fmtTime .CreatedAt}}</td>
+      <td><div class="person"><span class="avatar avatar-sm">{{initials .AdminName}}</span><div><strong>{{.AdminName}}</strong><small>UID {{.AdminID}}</small></div></div></td>
+      <td><span class="tag {{auditTone .Action}}">{{auditLabel .Action}}</span></td>
+      <td style="max-width:360px">{{.Detail}}</td>
+      <td class="tiny muted">{{if .TargetType}}{{.TargetType}} #{{.TargetID}}{{else}}—{{end}}</td>
+      <td class="mono tiny">{{.IP}}</td>
+    </tr>
+    {{else}}
+    <tr><td colspan="6"><div class="empty" style="padding:40px"><div class="empty-ico">🪐</div><h3>还没有审计记录</h3><p>管理员接入群组、编辑模板或调整积分后，会出现在这里。</p></div></td></tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+
+{{if gt .Data.Pages 1}}
+<div class="row" style="justify-content:flex-end;margin-top:14px">
+  {{if gt .Data.Page 1}}<a class="btn btn-sm" href="/audit?page={{add .Data.Page -1}}&action={{urlquery .Data.Action}}&admin={{urlquery .Data.Admin}}&q={{urlquery .Data.Query}}">← 上一页</a>{{end}}
+  <span class="small muted">{{.Data.Page}} / {{.Data.Pages}}</span>
+  {{if lt .Data.Page .Data.Pages}}<a class="btn btn-sm" href="/audit?page={{add .Data.Page 1}}&action={{urlquery .Data.Action}}&admin={{urlquery .Data.Admin}}&q={{urlquery .Data.Query}}">下一页 →</a>{{end}}
+</div>
+{{end}}
+{{end}}

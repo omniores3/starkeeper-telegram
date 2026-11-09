@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hans" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>{{.Title}}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css?v=20261112">
+</head>
+<body class="login-body" data-page="login" data-demo="{{.Demo}}">
+  <div class="ambient" aria-hidden="true">
+    <div class="aurora aurora-a"></div>
+    <div class="aurora aurora-b"></div>
+    <div class="aurora aurora-c"></div>
+    <div class="grain"></div>
+  </div>
+
+  <main class="login-grid">
+    <section class="login-story">
+      <a class="brand login-brand" href="/">
+        <span class="brand-orb" aria-hidden="true">
+          {{if .BrandLogo}}<img src="{{.BrandLogo}}" alt="" style="width:38px;height:38px;object-fit:cover;border-radius:12px">{{else}}
+          <svg viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="7" fill="url(#lg1)"/>
+            <ellipse cx="24" cy="24" rx="20" ry="8.5" transform="rotate(-28 24 24)" stroke="url(#lg2)" stroke-width="1.4"/>
+            <ellipse cx="24" cy="24" rx="20" ry="8.5" transform="rotate(32 24 24)" stroke="url(#lg2)" stroke-width="1.4" opacity=".65"/>
+            <defs>
+              <linearGradient id="lg1" x1="18" y1="18" x2="31" y2="31"><stop stop-color="#c4b5fd"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+              <linearGradient id="lg2" x1="4" y1="24" x2="44" y2="24"><stop stop-color="#8b5cf6" stop-opacity=".2"/><stop offset=".5" stop-color="#a78bfa"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".3"/></linearGradient>
+            </defs>
+          </svg>
+          {{end}}
+        </span>
+        <span class="brand-copy"><strong>{{.Brand}}</strong><small>STARKEEPER</small></span>
+      </a>
+
+      <div class="story-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span>Telegram Group Operating System</p>
+        <h1>把群聊，<br>照料成一片<br><em>小小的银河。</em></h1>
+        <p class="story-sub">欢迎、验证、秩序、积分与惊喜。<br>让每一个加入的人，都被认真接住。</p>
+      </div>
+
+      <div class="story-features">
+        <span>进群欢迎</span><span>人类验证</span><span>广告拦截</span><span>签到积分</span><span>积分红包</span><span>营销活动</span>
+      </div>
+
+      <div class="orbit-art" aria-hidden="true">
+        <div class="orbit-ring r1"></div>
+        <div class="orbit-ring r2"></div>
+        <div class="orbit-ring r3"></div>
+        <div class="orbit-core"></div>
+        <span class="orbit-dot d1"></span>
+        <span class="orbit-dot d2"></span>
+        <span class="orbit-dot d3"></span>
+        <div class="float-card fc1"><span>📅</span><div><b>今日签到</b><small>326 位群友</small></div></div>
+        <div class="float-card fc2"><span>🛡️</span><div><b>广告拦截</b><small>安全运行中</small></div></div>
+      </div>
+
+      <p class="story-foot">“让每一个群，都像银河一样有序发光。”</p>
+    </section>
+
+    <section class="login-panel">
+      <div class="login-card glass">
+        <div class="login-card-head">
+          <span class="mini-orb">✦</span>
+          <div>
+            <p class="eyebrow">WELCOME BACK</p>
+            <h2>欢迎回来</h2>
+            <p>登录 {{.Brand}} 控制台，继续照料你的群聊。</p>
+          </div>
+        </div>
+
+        <form id="login-form" autocomplete="on">
+          <label class="field">
+            <span>管理员账号</span>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+              <input name="username" id="login-username" placeholder="admin" autocomplete="username" required>
+            </div>
+          </label>
+          <label class="field">
+            <span>密码</span>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              <input name="password" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+            </div>
+          </label>
+          <div class="login-row">
+            <label class="check"><input type="checkbox" name="remember"><span>保持登录 30 天</span></label>
+            <span class="muted small">本地 SQLite 存储</span>
+          </div>
+          <p class="form-error" id="login-error"></p>
+          <button class="btn btn-primary btn-block btn-lg" type="submit" id="login-submit">
+            <span>进入控制台</span>
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+
+        {{if .Demo}}
+        <div class="demo-hint">
+          <span class="tag tag-amber">演示模式</span>
+          <p>首次启动账号 <code>admin</code> / <code>admin123</code>，数据只保存在本机。</p>
+        </div>
+        {{end}}
+        <p class="login-legal">登录即代表你已获得该群组的管理授权。</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-root" class="toast-root"></div>
+  <script src="/static/app.js?v=20261112"></script>
+</body>
+</html>
+

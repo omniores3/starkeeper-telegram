@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="360" viewBox="0 0 1400 360">
+  <rect width="1400" height="360" rx="28" fill="#0E1116"/>
+  <g transform="translate(32 44) scale(0.53)">
+    <circle cx="256" cy="256" r="256" fill="#0E1116"/>
+    <circle cx="256" cy="256" r="206" fill="none" stroke="#222A36" stroke-width="2"/>
+    <circle cx="256" cy="256" r="150" fill="none" stroke="#F4EFE4" stroke-width="14"
+            stroke-linecap="round" stroke-dasharray="700 243" transform="rotate(-38 256 256)"/>
+    <path d="M256 148 L282 230 L364 256 L282 282 L256 364 L230 282 L148 256 L230 230 Z" fill="#F4EFE4"/>
+    <circle cx="357" cy="158" r="13" fill="#F4EFE4"/>
+  </g>
+  <text x="330" y="142" fill="#F4EFE4" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="78" font-weight="700" letter-spacing="7">STARKEEPER</text>
+  <text x="334" y="200" fill="#F4EFE4" font-family="Microsoft YaHei, Segoe UI, sans-serif" font-size="34" letter-spacing="4">星群管家</text>
+  <text x="334" y="244" fill="#9AA6B5" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="16" letter-spacing="3">TELEGRAM GROUP OPERATING SYSTEM</text>
+  <line x1="334" y1="270" x2="1320" y2="270" stroke="#2A3340" stroke-width="1"/>
+  <text x="334" y="302" fill="#6F7C8D" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="15" letter-spacing="1">让每一个群，都像银河一样有序发光</text>
+</svg>

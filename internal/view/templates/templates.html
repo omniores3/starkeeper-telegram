@@ -1,0 +1,125 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:13px">
+    <span class="stat-icon violet" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M3 9h18M9 21V9"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">模板工坊</h2><p class="small muted" style="margin:1px 0 0">一个模板 = 一段文案 + 一张封面 + 一组按钮</p></div>
+  </div>
+  <span class="tag tag-violet">{{len .Data.Templates}} 个模板</span>
+  <div class="spacer"></div>
+  <button class="btn btn-primary" data-new-template="welcome">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    新建模板
+  </button>
+</section>
+
+<div class="filter-bar" style="margin-top:18px;flex-wrap:wrap">
+  <button class="chip active" data-scene-filter="">全部</button>
+  {{range .Data.Scenes}}
+  <button class="chip" data-scene-filter="{{.Key}}">{{.Icon}} {{.Label}} <span style="opacity:.5">{{index $.Data.Counts .Key}}</span></button>
+  {{end}}
+  <div class="spacer"></div>
+  <div class="search-box" style="min-width:220px">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="tpl-search" placeholder="搜索模板名称、文案或按钮…">
+  </div>
+</div>
+
+<div class="template-grid">
+  {{range .Data.Templates}}
+  <article class="template-card fade-in" data-template-card data-id="{{.ID}}" data-scene="{{.Scene}}">
+    <div class="tpl-top">
+      <div>
+        <div class="row" style="gap:6px;margin-bottom:3px">
+          <span class="tag tag-violet">{{sceneLabel .Scene}}</span>
+          {{if .MediaURL}}<span class="tag tag-muted">含图片</span>{{end}}
+        </div>
+        <h3>{{.Name}}</h3>
+        <p>{{fmtTime .UpdatedAt}} 更新 · {{len .Buttons}} 个按钮</p>
+      </div>
+      <div class="tpl-actions">
+        <button data-edit title="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button data-history title="历史版本"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>
+        <button data-duplicate title="复制"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+        <button data-delete title="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+    </div>
+    <div class="tpl-body-preview">{{rune (plain .Body) 240}}</div>
+    <div class="tpl-btn-row">
+      {{range .Buttons}}<span class="pill-btn">{{.Text}}</span>{{end}}
+      {{if not .Buttons}}<span class="tiny muted">无按钮</span>{{end}}
+    </div>
+    <div class="tpl-foot">
+      <span class="meta">{{if .MediaURL}}🖼 图片封面{{else}}纯文本卡片{{end}}</span>
+      <button class="btn btn-sm btn-ghost" data-edit>编辑模板 →</button>
+    </div>
+  </article>
+  {{end}}
+</div>
+
+{{if not .Data.Templates}}
+<div class="empty">
+  <div class="empty-ico">✍️</div>
+  <h3>还没有模板</h3>
+  <p>新建一张欢迎卡，让新朋友第一眼就记住这里。</p>
+  <button class="btn btn-primary" data-new-template="welcome" style="margin-top:14px">新建第一个模板</button>
+</div>
+{{end}}
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>场景说明</h2><p>每个场景都有独立的默认模板，可自由增补多个版本</p></div></div>
+  <div class="rule-grid">
+    {{range .Data.Scenes}}
+    <div class="rule-card">
+      <span class="rule-ico" style="background:rgba(34,211,238,.1);color:#67e8f9">{{.Icon}}</span>
+      <h4>{{.Label}}</h4>
+      <p>{{.Desc}}</p>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <div class="card panel">
+    <div class="panel-head"><div><h2>可用变量</h2><p>发送时自动替换，编辑模板时可直接复制</p></div><span class="tag tag-cyan">HTML</span></div>
+    <div class="variable-grid">
+      <div><code>{name}</code><span>用户昵称</span></div>
+      <div><code>{username}</code><span>@username</span></div>
+      <div><code>{mention}</code><span>可点击的用户提及</span></div>
+      <div><code>{group}</code><span>群组名称</span></div>
+      <div><code>{count}</code><span>群成员数 / 红包个数</span></div>
+      <div><code>{date}</code><span>当前日期时间</span></div>
+      <div><code>{points}</code><span>本次获得积分</span></div>
+      <div><code>{streak}</code><span>连续签到天数</span></div>
+      <div><code>{balance}</code><span>当前积分余额</span></div>
+      <div><code>{currency}</code><span>积分名称</span></div>
+      <div><code>{question}</code><span>验证问题</span></div>
+      <div><code>{timeout}</code><span>验证有效期</span></div>
+      <div><code>{title}</code><span>红包标题 / 广告标题</span></div>
+      <div><code>{note}</code><span>红包祝福语</span></div>
+      <div><code>{total}</code><span>红包总积分</span></div>
+      <div><code>{expire}</code><span>红包过期时间</span></div>
+      <div><code>{entries}</code><span>活动参与人数</span></div>
+      <div><code>{end}</code><span>活动截止时间</span></div>
+      <div><code>{prize}</code><span>活动奖池</span></div>
+      <div><code>{rules}</code><span>群规正文</span></div>
+      <div><code>{items}</code><span>商城商品列表</span></div>
+      <div><code>{tasks}</code><span>任务列表</span></div>
+      <div><code>{products}</code><span>Stars 商品列表</span></div>
+      <div><code>{ticket_id}</code><span>工单编号</span></div>
+      <div><code>{commands}</code><span>命令清单</span></div>
+    </div>
+    <p class="tiny muted" style="margin:12px 0 0">图片封面会作为 `sendPhoto` 的 caption，超过 1024 字会自动回退为纯文本消息；每条消息正文上限 4096 字。</p>
+  </div>
+
+  <div class="card panel">
+    <div class="panel-head"><div><h2>按钮与排版</h2><p>按钮不只能放链接，也能触发群内动作</p></div><span class="tag tag-violet">交互</span></div>
+    <div class="button-guide">
+      <div><span class="guide-key">打开链接</span><p>填写 <code>https://…</code>，适合课程、资料、官网。</p></div>
+      <div><span class="guide-key">回调动作</span><p>填写 <code>checkin</code> 签到、<code>rules</code> 群规、<code>rank</code> 排行榜。</p></div>
+      <div><span class="guide-key">活动/红包</span><p>活动按钮可用 <code>join:活动ID</code>；红包用 <code>rp:红包ID</code>。</p></div>
+      <div><span class="guide-key">商城/任务/数字商品</span><p>商品按钮由机器人动态生成，使用 <code>shop:商品ID</code>、<code>task:任务ID</code>、<code>star:商品ID</code>。</p></div>
+    </div>
+    <div class="field-hint" style="margin-top:12px">最多 8 个按钮；每行 1–4 个。按钮文案建议不超过 20 个汉字，避免 Telegram 客户端截断。按钮过多时优先保留「群规」「签到」「打开链接」三类核心动作。</div>
+  </div>
+</div>
+{{end}}

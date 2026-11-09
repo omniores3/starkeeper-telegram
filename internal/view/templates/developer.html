@@ -1,0 +1,71 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon cyan" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 4l-4 16"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">开放平台</h2><p class="small muted" style="margin:0">API Key、Webhook 与外部系统集成</p></div>
+  </div>
+  <div style="display:flex;gap:24px;margin-left:6px">
+    <div><span class="muted tiny">API Key</span><div style="font-size:22px;font-weight:650">{{len .Data.Keys}}</div></div>
+    <div><span class="muted tiny">Webhook</span><div style="font-size:22px;font-weight:650">{{len .Data.Webhooks}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn" id="new-api-key">+ API Key</button>
+  <button class="btn btn-primary" id="new-webhook">+ Webhook</button>
+</section>
+
+<div class="settings-grid" style="margin-top:18px">
+  <section class="setting-card card">
+    <div class="panel-head"><div><h3>API Key</h3><p>用于调用 /api/v1/* 开放接口</p></div><span class="tag tag-cyan">Bearer</span></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>名称</th><th>前缀</th><th>状态</th><th>最后使用</th><th></th></tr></thead><tbody>
+        {{range .Data.Keys}}
+        <tr><td><strong>{{.Name}}</strong></td><td class="mono tiny">{{.Prefix }}…</td><td>{{if .Active}}<span class="tag tag-emerald">启用</span>{{else}}<span class="tag tag-muted">停用</span>{{end}}</td><td class="tiny">{{if .LastUsedAt}}{{timeAgo .LastUsedAt}}{{else}}从未{{end}}</td><td><div class="row" style="gap:4px;justify-content:flex-end"><button class="btn btn-sm btn-ghost" data-key-toggle="{{.ID}}" data-active="{{if .Active}}1{{else}}0{{end}}">{{if .Active}}停用{{else}}启用{{end}}</button><button class="btn btn-sm btn-ghost" data-key-delete="{{.ID}}" style="color:var(--rose)">删除</button></div></td></tr>
+        {{else}}
+        <tr><td colspan="5"><div class="empty" style="padding:24px"><p>还没有 API Key</p></div></td></tr>
+        {{end}}
+      </tbody></table>
+    </div>
+    <div class="code-block" style="margin-top:14px">curl -H "Authorization: Bearer sk_live_…" \
+  http://127.0.0.1:8787/api/v1/groups</div>
+  </section>
+
+  <section class="setting-card card">
+    <div class="panel-head"><div><h3>Webhook</h3><p>事件发生时向你的服务推送 JSON</p></div><span class="tag tag-violet">HMAC</span></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>名称 / URL</th><th>事件</th><th>状态</th><th></th></tr></thead><tbody>
+        {{range .Data.Webhooks}}
+        <tr><td><strong>{{.Name}}</strong><div class="tiny muted mono" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">{{.URL}}</div></td><td class="tiny">{{if .Events}}{{.Events}}{{else}}全部{{end}}</td><td><span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{if eq .Status "active"}}启用{{else}}暂停{{end}}</span></td><td><div class="row" style="gap:4px;justify-content:flex-end"><button class="btn btn-sm" data-hook-test="{{.ID}}">测试</button><button class="btn btn-sm btn-ghost" data-hook-edit="{{.ID}}">编辑</button><button class="btn btn-sm btn-ghost" data-hook-delete="{{.ID}}" style="color:var(--rose)">删除</button></div></td></tr>
+        {{else}}
+        <tr><td colspan="4"><div class="empty" style="padding:24px"><p>还没有 Webhook</p></div></td></tr>
+        {{end}}
+      </tbody></table>
+    </div>
+    <div class="field-hint" style="margin-top:10px">支持事件：{{range $i, $e := .Data.Events}}{{if $i}} · {{end}}<code>{{$e}}</code>{{end}}。事件按空格/逗号匹配，留空表示全部。</div>
+  </section>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel">
+    <div class="panel-head"><div><h2>Webhook 投递记录</h2><p>最近 30 次推送</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>事件</th><th>状态</th><th>错误</th><th>时间</th></tr></thead><tbody>
+      {{range .Data.Deliveries}}
+      <tr><td><code class="tiny">{{.Event}}</code></td><td>{{if eq .Status "ok"}}<span class="tag tag-emerald">成功</span>{{else}}<span class="tag tag-rose">失败</span>{{end}}</td><td class="tiny">{{rune .Error 50}}</td><td class="tiny">{{timeAgo .CreatedAt}}</td></tr>
+      {{else}}
+      <tr><td colspan="4"><div class="empty" style="padding:24px"><p>还没有投递记录</p></div></td></tr>
+      {{end}}
+    </tbody></table></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head"><div><h2>开放 API</h2><p>所有请求使用 Bearer Token</p></div></div>
+    <div class="api-endpoints">
+      <div><span class="tag tag-cyan">GET</span> <code>/api/v1/groups</code><small>群组列表</small></div>
+      <div><span class="tag tag-cyan">GET</span> <code>/api/v1/stats</code><small>统计摘要</small></div>
+      <div><span class="tag tag-cyan">GET</span> <code>/api/v1/checkins</code><small>签到记录</small></div>
+      <div><span class="tag tag-violet">POST</span> <code>/api/v1/messages</code><small>发送群消息</small></div>
+      <div><span class="tag tag-violet">POST</span> <code>/api/v1/points/adjust</code><small>调整积分</small></div>
+    </div>
+    <div class="field-hint" style="margin-top:14px">Webhook 请求头包含 <code>X-StarKeeper-Event</code>；设置 Secret 后会附加 <code>X-StarKeeper-Signature: sha256=…</code>，请用相同 Secret 做 HMAC-SHA256 校验。</div>
+  </section>
+</div>
+{{end}}

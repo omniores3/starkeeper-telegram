@@ -1,0 +1,75 @@
+{{define "content"}}
+<section class="card panel fade-in" style="padding:22px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div style="display:flex;gap:26px;flex-wrap:wrap">
+    <div><span class="muted tiny">已接入群组</span><div style="font-size:26px;font-weight:650;letter-spacing:-.04em">{{.Data.Total}}</div></div>
+    <div><span class="muted tiny">运行中</span><div style="font-size:26px;font-weight:650;letter-spacing:-.04em">{{.Data.Active}}</div></div>
+    <div><span class="muted tiny">覆盖成员</span><div style="font-size:26px;font-weight:650;letter-spacing:-.04em">{{fmtNum .Data.Members}}</div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="group-search" placeholder="搜索群组名称…">
+  </div>
+  <button class="btn btn-primary" id="add-group-btn">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    接入群组
+  </button>
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Groups}}
+  <article class="group-card fade-in" data-group-card data-name="{{.Title}}">
+    <div class="group-top">
+      <span class="group-avatar {{avatar .Title}}">{{initials .Title}}</span>
+      <div class="group-info">
+        <h3><a href="/groups/{{.ID}}">{{.Title}}</a></h3>
+        <p>{{if .Username}}@{{.Username}} · {{end}}ID {{.ChatID}}</p>
+      </div>
+      <label class="switch" title="{{if .IsActive}}暂停管理{{else}}启用管理{{end}}">
+        <input type="checkbox" class="js-group-toggle" data-id="{{.ID}}" {{if .IsActive}}checked{{end}}>
+        <span></span>
+      </label>
+    </div>
+
+    <div class="group-meta">
+      <div><b>{{fmtNum .MemberCount}}</b><span>成员</span></div>
+      <div><b>{{if .BotIsAdmin}}是{{else}}否{{end}}</b><span>机器人管理员</span></div>
+      <div><b>{{if .IsActive}}在线{{else}}暂停{{end}}</b><span>管理状态</span></div>
+    </div>
+
+    <div class="group-features">
+      {{if .Settings}}
+        {{if .Settings.WelcomeEnabled}}<span class="mini-feature">👋 欢迎</span>{{end}}
+        {{if .Settings.VerifyEnabled}}<span class="mini-feature">🛡️ 验证</span>{{end}}
+        {{if .Settings.CheckinEnabled}}<span class="mini-feature">📅 签到</span>{{end}}
+        {{if .Settings.RedpacketEnabled}}<span class="mini-feature">🧧 红包</span>{{end}}
+        {{if .Settings.AntispamEnabled}}<span class="mini-feature">🧹 拦截</span>{{end}}
+      {{else}}
+        <span class="mini-feature">待配置</span>
+      {{end}}
+    </div>
+
+    <div class="group-actions">
+      <span class="status-text {{if .IsActive}}on{{end}}"><span class="status-dot"></span>{{if .IsActive}}运行中{{else}}已暂停{{end}}</span>
+      <a class="btn btn-sm btn-ghost" href="/groups/{{.ID}}">进入配置
+        <svg class="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </article>
+  {{end}}
+
+  <button class="group-add" id="empty-add-group" type="button">
+    <span class="plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+    <strong style="font-size:12.5px">接入新的群组</strong>
+    <span class="tiny">把机器人设为管理员，然后粘贴群组 ID</span>
+  </button>
+</div>
+
+{{if not .Data.Groups}}
+<div class="empty" style="margin-top:10px">
+  <div class="empty-ico">🛰️</div>
+  <h3>还没有群组</h3>
+  <p>点击「接入群组」，让星群管家开始工作。</p>
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,79 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:13px">
+    <span class="stat-icon rose" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9 12l2 2 4-4"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">广告拦截</h2><p class="small muted" style="margin:0">安静的群，才有真正的交流</p></div>
+  </div>
+  <div class="spacer"></div>
+  <select id="antispam-group" style="width:auto;min-width:190px">
+    {{range .Data.Groups}}<option value="{{.ID}}" {{if and $.Data.Selected (eq $.Data.Selected.ID .ID)}}selected{{end}}>{{.Title}}</option>{{end}}
+  </select>
+  <span class="tag tag-rose">今日拦截 {{.Data.Blocked}}</span>
+  {{if .Data.Selected}}<a class="btn btn-sm" href="/security?group={{.Data.Selected.ID}}">防炸群与黑名单 →</a>{{end}}
+</section>
+
+{{if .Data.Selected}}
+<div class="grid-3" style="margin-top:18px">
+  <div class="rule-card card" style="padding:18px"><span class="rule-ico">🔗</span><h4>推广链接</h4><p>{{if .Data.Settings.AntispamBlockLinks}}已开启 · http(s)、t.me、www.{{else}}已关闭{{end}}</p></div>
+  <div class="rule-card card" style="padding:18px"><span class="rule-ico">📨</span><h4>转发广告</h4><p>{{if .Data.Settings.AntispamBlockForwards}}已开启 · 识别转发来源{{else}}已关闭{{end}}</p></div>
+  <div class="rule-card card" style="padding:18px"><span class="rule-ico">⚡</span><h4>处理策略</h4><p>{{actionLabel .Data.Settings.AntispamAction}} · 阈值 {{.Data.Settings.AntispamThreshold}} 次</p></div>
+</div>
+
+<div class="settings-grid" style="margin-top:18px">
+  <section class="setting-card card">
+    <h3>拦截规则</h3>
+    <p>保存后立即生效，管理员与机器人不会触发拦截。</p>
+    <form id="antispam-form">
+      <div class="switch-row">
+        <div><strong>启用广告拦截</strong><small>关闭后仅保留日志，不处理消息</small></div>
+        <label class="switch"><input type="checkbox" name="antispam_enabled" {{if .Data.Settings.AntispamEnabled}}checked{{end}}><span></span></label>
+      </div>
+      <div class="field-row-3" style="margin-top:14px">
+        <label class="field"><span>处理策略</span>
+          <select name="antispam_action">
+            <option value="delete" {{if eq .Data.Settings.AntispamAction "delete"}}selected{{end}}>仅删除</option>
+            <option value="warn" {{if eq .Data.Settings.AntispamAction "warn"}}selected{{end}}>删除并警告</option>
+            <option value="mute" {{if eq .Data.Settings.AntispamAction "mute"}}selected{{end}}>禁言 10 分钟</option>
+            <option value="kick" {{if eq .Data.Settings.AntispamAction "kick"}}selected{{end}}>移出群聊</option>
+            <option value="ban" {{if eq .Data.Settings.AntispamAction "ban"}}selected{{end}}>永久封禁</option>
+          </select>
+        </label>
+        <label class="field"><span>违规阈值</span><input type="number" name="antispam_threshold" value="{{.Data.Settings.AntispamThreshold}}" min="1" max="20"></label>
+        <label class="field"><span>统计窗口（秒）</span><input type="number" name="antispam_window_sec" value="{{.Data.Settings.AntispamWindowSec}}" min="60"></label>
+      </div>
+      <label class="field"><span>关键词 <em>逗号或换行分隔</em></span><textarea name="antispam_keywords" rows="3">{{.Data.Settings.AntispamKeywords}}</textarea></label>
+      <label class="field"><span>正则表达式 <em>每行一条</em></span><textarea name="antispam_regex" rows="2" placeholder="(?i)加微信|私聊我">{{.Data.Settings.AntispamRegex}}</textarea></label>
+      <div class="switch-row"><div><strong>拦截推广链接</strong><small>识别 http(s)、t.me、www. 等</small></div><label class="switch"><input type="checkbox" name="antispam_block_links" {{if .Data.Settings.AntispamBlockLinks}}checked{{end}}><span></span></label></div>
+      <div class="switch-row"><div><strong>拦截转发广告</strong><small>识别转发消息与自动转发</small></div><label class="switch"><input type="checkbox" name="antispam_block_forwards" {{if .Data.Settings.AntispamBlockForwards}}checked{{end}}><span></span></label></div>
+      <div class="switch-row"><div><strong>拦截批量 @ 提及</strong><small>谨慎开启，可能误伤正常提及</small></div><label class="switch"><input type="checkbox" name="antispam_block_mentions" {{if .Data.Settings.AntispamBlockMentions}}checked{{end}}><span></span></label></div>
+      <label class="field" style="margin-top:14px"><span>白名单 <em>用户 ID / @username / 域名</em></span><input name="antispam_whitelist" value="{{.Data.Settings.AntispamWhitelist}}"></label>
+      <label class="field"><span>违规日志频道 ID <em>可选</em></span><input type="number" name="log_channel_id" value="{{.Data.Settings.LogChannelID}}"></label>
+      <button class="btn btn-primary" id="antispam-save" type="submit" style="width:100%">保存拦截规则</button>
+    </form>
+  </section>
+
+  <section class="setting-card card">
+    <div class="panel-head"><div><h3>拦截记录</h3><p>该群最近 50 条违规记录</p></div><span class="tag tag-rose">{{.Data.Blocked}} 今日</span></div>
+    <div class="keyword-cloud" style="margin-bottom:14px">
+      {{range .Data.Keywords}}<span class="keyword">{{.}}</span>{{else}}<span class="tiny muted">尚未设置关键词</span>{{end}}
+    </div>
+    <div class="log-list" style="max-height:520px;overflow:auto">
+      {{range .Data.Logs}}
+      <div class="log-item">
+        <span class="log-icon"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>
+        <div class="log-content">
+          <strong>{{.FirstName}} <span class="muted">@{{.Username}}</span></strong>
+          <p>{{.Content}}</p>
+          <div class="log-meta"><span>{{.Reason}}</span><span class="tag tag-rose">{{.Action}}</span><span>{{timeAgo .CreatedAt}}</span></div>
+        </div>
+      </div>
+      {{else}}
+      <div class="empty" style="padding:24px"><p>暂无拦截记录，群聊很干净。</p></div>
+      {{end}}
+    </div>
+  </section>
+</div>
+{{else}}
+<div class="empty"><div class="empty-ico">🛡️</div><h3>还没有群组</h3><p>先接入一个群组，才能配置广告拦截。</p><a class="btn btn-primary" href="/groups" style="margin-top:14px">去接入群组</a></div>
+{{end}}
+{{end}}

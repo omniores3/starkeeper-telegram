@@ -1,0 +1,292 @@
+{{define "content"}}
+<section class="group-hero fade-in">
+  <span class="group-avatar {{avatar .Data.Group.Title}}">{{initials .Data.Group.Title}}</span>
+  <div>
+    <div class="row" style="gap:8px;margin-bottom:2px">
+      <h2 style="margin:0">{{.Data.Group.Title}}</h2>
+      {{if .Data.Group.IsActive}}<span class="tag tag-emerald">运行中</span>{{else}}<span class="tag tag-muted">已暂停</span>{{end}}
+      {{if .Data.Group.BotIsAdmin}}<span class="tag tag-violet">机器人管理员</span>{{else}}<span class="tag tag-rose">缺少管理员权限</span>{{end}}
+    </div>
+    <span class="handle">@{{.Data.Group.Username}} · Chat ID {{.Data.Group.ChatID}} · {{.Data.Group.Timezone}}</span>
+  </div>
+  <div class="group-hero-stats">
+    <div><b>{{fmtNum .Data.Group.MemberCount}}</b><span>成员</span></div>
+    <div><b>{{.Data.TodayCheckin}}</b><span>今日签到</span></div>
+    <div><b>{{fmtNum .Data.PointsTotal}}</b><span>积分余额</span></div>
+  </div>
+  <div class="row" style="width:100%;margin-top:4px">
+    <label class="switch" title="启用/暂停整个群的管理"><input type="checkbox" id="group-active-toggle" {{if .Data.Group.IsActive}}checked{{end}}><span></span></label>
+    <span class="small muted">启用群管理</span>
+    <span class="spacer"></span>
+    <button class="btn btn-sm" id="test-send-btn">发送测试</button>
+    <button class="btn btn-sm" id="sync-group-btn">同步群信息</button>
+    <a class="btn btn-sm btn-ghost" href="/redpackets">发红包</a>
+  </div>
+</section>
+
+<div class="tabs">
+  <button class="tab {{if eq .Data.Tab "welcome"}}active{{end}}" data-tab="welcome">👋 进群欢迎</button>
+  <button class="tab {{if eq .Data.Tab "verify"}}active{{end}}" data-tab="verify">🛡️ 入群验证</button>
+  <button class="tab {{if eq .Data.Tab "antispam"}}active{{end}}" data-tab="antispam">🧹 广告拦截</button>
+  <button class="tab {{if eq .Data.Tab "checkin"}}active{{end}}" data-tab="checkin">📅 签到积分</button>
+  <button class="tab {{if eq .Data.Tab "redpacket"}}active{{end}}" data-tab="redpacket">🧧 红包</button>
+  <button class="tab {{if eq .Data.Tab "basic"}}active{{end}}" data-tab="basic">⚙️ 基础设置</button>
+</div>
+
+<p class="field-hint" style="margin:-8px 2px 14px">下面的标签是功能分类；每个标签页里的「编辑文案与按钮」可以直接修改对应的 Telegram 卡片，不需要跳转页面。</p>
+
+<form id="settings-form">
+<div class="tab-pane {{if eq .Data.Tab "welcome"}}active{{end}}" id="pane-welcome">
+  <div class="settings-layout">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>欢迎卡片</h3>
+        <p>新成员入群后的第一句话，卡片会发送到群聊。</p>
+        <div class="switch-row">
+          <div><strong>启用进群欢迎</strong><small>新成员加入时自动发送欢迎卡片</small></div>
+          <label class="switch"><input type="checkbox" name="welcome_enabled" {{if .Data.Settings.WelcomeEnabled}}checked{{end}}><span></span></label>
+        </div>
+        <div class="field" style="margin-top:15px">
+          <span>欢迎模板</span>
+          <select name="welcome_template_id" data-preview-select data-scene="welcome" data-preview-target="welcome-preview">
+            <option value="0">使用场景默认模板</option>
+            {{range .Data.Templates}}{{if eq .Scene "welcome"}}
+            <option value="{{.ID}}" {{if eq $.Data.Settings.WelcomeTemplateID .ID}}selected{{end}}>{{.Name}}</option>
+            {{end}}{{end}}
+          </select>
+          <div class="row" style="gap:8px">
+            <button class="btn btn-sm btn-soft" type="button" data-edit-template="welcome">✎ 编辑文案与按钮</button>
+            <a class="btn btn-sm btn-ghost" href="/templates">打开模板工坊</a>
+          </div>
+        </div>
+        <label class="field"><span>欢迎语自动删除 <em>秒，0 为不删除</em></span><input type="number" name="welcome_delete_after" value="{{.Data.Settings.WelcomeDeleteAfter}}" min="0" max="86400"></label>
+        <label class="field"><span>群规文案 <em>欢迎卡片与 /rules 共用</em></span><textarea name="rules_text" rows="3">{{.Data.Settings.RulesText}}</textarea></label>
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary save-settings" type="button">保存欢迎设置</button></div>
+      </div>
+    </div>
+    <div class="preview-sticky">
+      <div class="preview-label"><span>WELCOME PREVIEW</span><span class="tag tag-violet">Telegram</span></div>
+      <div id="welcome-preview"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-pane {{if eq .Data.Tab "verify"}}active{{end}}" id="pane-verify">
+  <div class="settings-layout">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>人类验证</h3>
+        <p>新成员需先完成验证，期间会被限制发言，用于挡住广告机器人。</p>
+        <div class="switch-row">
+          <div><strong>启用入群验证</strong><small>验证通过后自动解锁发言权限</small></div>
+          <label class="switch"><input type="checkbox" name="verify_enabled" {{if .Data.Settings.VerifyEnabled}}checked{{end}}><span></span></label>
+        </div>
+        <div class="field-row" style="margin-top:15px">
+          <label class="field"><span>验证方式</span>
+            <select name="verify_mode">
+              <option value="math" {{if eq .Data.Settings.VerifyMode "math"}}selected{{end}}>🧮 算术验证（推荐）</option>
+              <option value="button" {{if eq .Data.Settings.VerifyMode "button"}}selected{{end}}>👆 点按验证</option>
+            </select>
+          </label>
+          <label class="field"><span>超时处理</span>
+            <select name="verify_action">
+              <option value="mute" {{if eq .Data.Settings.VerifyAction "mute"}}selected{{end}}>保持禁言（Telegram 自动解除）</option>
+              <option value="kick" {{if eq .Data.Settings.VerifyAction "kick"}}selected{{end}}>移出群聊</option>
+            </select>
+          </label>
+        </div>
+        <div class="field-row-3">
+          <label class="field"><span>验证有效期（秒）</span><input type="number" name="verify_timeout_sec" value="{{.Data.Settings.VerifyTimeoutSec}}" min="60" max="3600"></label>
+          <label class="field"><span>通过奖励积分</span><input type="number" name="verify_reward_points" value="{{.Data.Settings.VerifyRewardPoints}}" min="0"></label>
+          <label class="field"><span>点按按钮文字</span><input name="verify_button_text" value="{{.Data.Settings.VerifyButtonText}}" maxlength="48"></label>
+        </div>
+        <div class="field-row">
+          <label class="field"><span>验证提示模板</span>
+            <select name="verify_template_id" data-preview-select data-scene="verify" data-preview-target="verify-preview">
+              <option value="0">使用场景默认模板</option>
+              {{range .Data.Templates}}{{if eq .Scene "verify"}}
+              <option value="{{.ID}}" {{if eq $.Data.Settings.VerifyTemplateID .ID}}selected{{end}}>{{.Name}}</option>
+              {{end}}{{end}}
+            </select>
+          </label>
+          <label class="field"><span>验证通过模板</span>
+            <select name="verify_success_template_id" data-preview-select data-scene="verify_success" data-preview-target="verify-success-preview">
+              <option value="0">使用场景默认模板</option>
+              {{range .Data.Templates}}{{if eq .Scene "verify_success"}}
+              <option value="{{.ID}}" {{if eq $.Data.Settings.VerifySuccessTemplateID .ID}}selected{{end}}>{{.Name}}</option>
+              {{end}}{{end}}
+            </select>
+          </label>
+        </div>
+        <div class="field-hint" style="margin-bottom:14px">算术验证会自动生成 4 个答案按钮；点按验证使用上方的按钮文字。</div>
+        <div class="row" style="margin-bottom:14px">
+          <button class="btn btn-sm btn-soft" type="button" data-edit-template="verify">✎ 编辑验证文案</button>
+          <button class="btn btn-sm btn-soft" type="button" data-edit-template="verify_success">✎ 编辑通过文案</button>
+        </div>
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary save-settings" type="button">保存验证设置</button></div>
+      </div>
+    </div>
+    <div class="preview-sticky">
+      <div class="preview-label"><span>VERIFY PREVIEW</span><span class="tag tag-cyan">Telegram</span></div>
+      <div id="verify-preview"></div>
+      <div class="preview-label" style="margin-top:16px"><span>SUCCESS PREVIEW</span></div>
+      <div id="verify-success-preview"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-pane {{if eq .Data.Tab "antispam"}}active{{end}}" id="pane-antispam">
+  <div class="settings-layout">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>广告拦截规则</h3>
+        <p>命中关键词、正则、链接或转发广告时自动处理，管理员会自动豁免。</p>
+        <div class="switch-row">
+          <div><strong>启用广告拦截</strong><small>删除违规消息，并按阈值升级处理</small></div>
+          <label class="switch"><input type="checkbox" name="antispam_enabled" {{if .Data.Settings.AntispamEnabled}}checked{{end}}><span></span></label>
+        </div>
+        <div class="field-row-3" style="margin-top:15px">
+          <label class="field"><span>达到阈值后</span>
+            <select name="antispam_action">
+              <option value="delete" {{if eq .Data.Settings.AntispamAction "delete"}}selected{{end}}>仅删除</option>
+              <option value="warn" {{if eq .Data.Settings.AntispamAction "warn"}}selected{{end}}>删除并警告</option>
+              <option value="mute" {{if eq .Data.Settings.AntispamAction "mute"}}selected{{end}}>禁言 10 分钟</option>
+              <option value="kick" {{if eq .Data.Settings.AntispamAction "kick"}}selected{{end}}>移出群聊</option>
+              <option value="ban" {{if eq .Data.Settings.AntispamAction "ban"}}selected{{end}}>永久封禁</option>
+            </select>
+          </label>
+          <label class="field"><span>违规阈值（次）</span><input type="number" name="antispam_threshold" value="{{.Data.Settings.AntispamThreshold}}" min="1" max="20"></label>
+          <label class="field"><span>统计窗口（秒）</span><input type="number" name="antispam_window_sec" value="{{.Data.Settings.AntispamWindowSec}}" min="60"></label>
+        </div>
+        <label class="field"><span>广告关键词 <em>逗号 / 换行分隔</em></span><textarea name="antispam_keywords" rows="3">{{.Data.Settings.AntispamKeywords}}</textarea></label>
+        <label class="field"><span>正则表达式 <em>每行一条</em></span><textarea name="antispam_regex" rows="2" placeholder="(?i)加微信|私聊我">{{.Data.Settings.AntispamRegex}}</textarea></label>
+        <div class="switch-row"><div><strong>拦截推广链接</strong><small>http(s)、t.me、www. 等</small></div><label class="switch"><input type="checkbox" name="antispam_block_links" {{if .Data.Settings.AntispamBlockLinks}}checked{{end}}><span></span></label></div>
+        <div class="switch-row"><div><strong>拦截转发广告</strong><small>识别转发来源与自动转发</small></div><label class="switch"><input type="checkbox" name="antispam_block_forwards" {{if .Data.Settings.AntispamBlockForwards}}checked{{end}}><span></span></label></div>
+        <div class="switch-row"><div><strong>拦截批量 @ 提及</strong><small>谨慎开启，可能误伤正常提及</small></div><label class="switch"><input type="checkbox" name="antispam_block_mentions" {{if .Data.Settings.AntispamBlockMentions}}checked{{end}}><span></span></label></div>
+        <label class="field" style="margin-top:14px"><span>白名单 <em>用户 ID / @username / 域名，空格或逗号分隔</em></span><input name="antispam_whitelist" value="{{.Data.Settings.AntispamWhitelist}}"></label>
+        <label class="field"><span>违规日志频道 ID <em>可选</em></span><input type="number" name="log_channel_id" value="{{.Data.Settings.LogChannelID}}"></label>
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary save-settings" type="button">保存拦截规则</button></div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-section">
+        <div class="panel-head" style="margin-bottom:6px"><div><h3>最近拦截</h3><p>该群最新的违规记录</p></div><a class="btn btn-sm btn-ghost" href="/antispam?group={{.Data.Group.ID}}">全部</a></div>
+        <div class="table-wrap"><table><thead><tr><th>成员</th><th>原因</th><th>处理</th></tr></thead><tbody>
+          {{range .Data.Logs}}
+          <tr><td><div class="person"><span class="avatar">{{initials .FirstName}}</span><div><strong>{{.FirstName}}</strong><small>@{{.Username}}</small></div></div></td><td class="small">{{.Reason}}</td><td><span class="tag tag-rose">{{.Action}}</span></td></tr>
+          {{else}}
+          <tr><td colspan="3"><div class="empty" style="padding:20px"><p>暂无拦截记录，群聊很干净。</p></div></td></tr>
+          {{end}}
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-pane {{if eq .Data.Tab "checkin"}}active{{end}}" id="pane-checkin">
+  <div class="settings-layout">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>签到与积分</h3>
+        <p>每日签到获得随机积分，连续签到有额外加成。</p>
+        <div class="switch-row"><div><strong>启用每日签到</strong><small>成员可通过 /checkin 或按钮签到</small></div><label class="switch"><input type="checkbox" name="checkin_enabled" {{if .Data.Settings.CheckinEnabled}}checked{{end}}><span></span></label></div>
+        <div class="field" style="margin-top:15px"><span>签到回执模板</span>
+          <select name="checkin_template_id" data-preview-select data-scene="checkin" data-preview-target="checkin-preview">
+            <option value="0">使用场景默认模板</option>
+            {{range .Data.Templates}}{{if eq .Scene "checkin"}}
+            <option value="{{.ID}}" {{if eq $.Data.Settings.CheckinTemplateID .ID}}selected{{end}}>{{.Name}}</option>
+            {{end}}{{end}}
+          </select>
+          <button class="btn btn-sm btn-soft" type="button" data-edit-template="checkin">✎ 编辑签到文案与按钮</button>
+        </div>
+        <div class="field-row-3">
+          <label class="field"><span>最少积分</span><input type="number" name="checkin_min_points" value="{{.Data.Settings.CheckinMinPoints}}" min="0"></label>
+          <label class="field"><span>最多积分</span><input type="number" name="checkin_max_points" value="{{.Data.Settings.CheckinMaxPoints}}" min="0"></label>
+          <label class="field"><span>连续加成 / 天</span><input type="number" name="checkin_streak_bonus" value="{{.Data.Settings.CheckinStreakBonus}}" min="0"></label>
+        </div>
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary save-settings" type="button">保存签到设置</button></div>
+      </div>
+      <div class="form-section">
+        <h3>积分榜</h3>
+        <div class="table-wrap"><table><thead><tr><th>#</th><th>成员</th><th>余额</th></tr></thead><tbody>
+          {{range $i, $b := .Data.Leaderboard}}
+          <tr><td><span class="rank-no {{if eq $i 0}}top1{{end}}{{if eq $i 1}}top2{{end}}{{if eq $i 2}}top3{{end}}">{{add $i 1}}</span></td><td><div class="person"><span class="avatar">{{initials $b.FirstName}}</span><div><strong>{{$b.FirstName}}</strong><small>@{{$b.Username}}</small></div></div></td><td><b>{{fmtNum $b.Balance}}</b></td></tr>
+          {{else}}
+          <tr><td colspan="3"><div class="empty" style="padding:20px"><p>还没有人签到</p></div></td></tr>
+          {{end}}
+        </tbody></table></div>
+      </div>
+    </div>
+    <div class="preview-sticky">
+      <div class="preview-label"><span>CHECK-IN PREVIEW</span><span class="tag tag-amber">Telegram</span></div>
+      <div id="checkin-preview"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-pane {{if eq .Data.Tab "redpacket"}}active{{end}}" id="pane-redpacket">
+  <div class="grid-2">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>红包开关</h3>
+        <p>允许管理员向该群发送积分红包。</p>
+        <div class="switch-row"><div><strong>启用积分红包</strong><small>关闭后红包按钮与领取将被禁止</small></div><label class="switch"><input type="checkbox" name="redpacket_enabled" {{if .Data.Settings.RedpacketEnabled}}checked{{end}}><span></span></label></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="btn btn-primary save-settings" type="button">保存红包设置</button></div>
+      </div>
+      <div class="form-section">
+        <h3>该群红包记录</h3>
+        <div class="table-wrap"><table><thead><tr><th>红包</th><th>进度</th><th>状态</th><th>·</th></tr></thead><tbody>
+          {{range .Data.Packets}}
+          <tr><td><strong>{{.Title}}</strong><div class="tiny muted">{{fmtNum .TotalPoints}} 积分 · {{.TotalCount}} 个</div></td><td>{{.ClaimedCount}} / {{.TotalCount}}</td><td><span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{statusLabel .Status}}</span></td><td><a class="btn btn-sm btn-ghost" href="/redpackets">查看</a></td></tr>
+          {{else}}
+          <tr><td colspan="4"><div class="empty" style="padding:20px"><p>还没有发过红包</p></div></td></tr>
+          {{end}}
+        </tbody></table></div>
+      </div>
+    </div>
+    <div class="card panel">
+      <div class="panel-head"><div><h2>红包怎么发？</h2><p>在红包工坊中创建并发送</p></div></div>
+      <div class="setup-steps">
+        <div class="setup-step">设置总积分与红包个数，支持拼手气或均分。</div>
+        <div class="setup-step">选择红包卡片模板，自定义标题、祝福与按钮。</div>
+        <div class="setup-step">发送后群友点击按钮领取，积分自动进入余额。</div>
+      </div>
+      <a class="btn btn-primary" href="/redpackets" style="margin-top:18px;width:100%">去发红包 🧧</a>
+    </div>
+  </div>
+</div>
+
+<div class="tab-pane {{if eq .Data.Tab "basic"}}active{{end}}" id="pane-basic">
+  <div class="settings-grid">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>群组信息</h3>
+        <p>群组名称和时区会用于定时任务与文案变量。</p>
+        <div class="info-list">
+          <div class="info-row"><span>群组名称</span><b>{{.Data.Group.Title}}</b></div>
+          <div class="info-row"><span>Chat ID</span><b class="mono">{{.Data.Group.ChatID}}</b></div>
+          <div class="info-row"><span>时区</span><b>{{.Data.Group.Timezone}}</b></div>
+          <div class="info-row"><span>最近同步</span><b>{{fmtTime .Data.Group.UpdatedAt}}</b></div>
+        </div>
+        <div class="row" style="margin-top:16px"><a class="btn" href="/schedules">设置定时发送</a><a class="btn" href="/campaigns">创建活动</a></div>
+      </div>
+    </div>
+    <div>
+      <div class="card panel" style="margin-bottom:16px">
+        <div class="panel-head"><div><h2>快捷入口</h2><p>把常见的操作放在手边</p></div></div>
+        <div class="row">
+          <a class="btn" href="/templates">编辑欢迎文案</a>
+          <a class="btn" href="/checkin?group={{.Data.Group.ID}}">签到看板</a>
+          <a class="btn" href="/antispam?group={{.Data.Group.ID}}">拦截日志</a>
+        </div>
+      </div>
+      <div class="danger-zone">
+        <h3>危险区域</h3>
+        <p>从控制台移除群组不会把机器人移出 Telegram 群。删除后本群配置、签到与积分记录将不可恢复。</p>
+        <button class="btn btn-danger" type="button" id="delete-group-btn">移除群组</button>
+      </div>
+    </div>
+  </div>
+</div>
+</form>
+{{end}}

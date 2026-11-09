@@ -1,0 +1,84 @@
+{{define "content"}}
+<div class="settings-grid">
+  <section class="setting-card card fade-in">
+    <h3>品牌与文案</h3>
+    <p>控制台标题、货币名称与首页问候都从这里读取。</p>
+    <form id="brand-form">
+      <div class="field-row">
+        <label class="field"><span>品牌名称</span><input data-setting="brand_name" value="{{index .Data.Settings "brand_name"}}"></label>
+        <label class="field"><span>货币名称</span><input data-setting="currency_name" value="{{index .Data.Settings "currency_name"}}"></label>
+      </div>
+      <label class="field"><span>品牌 Slogan</span><input data-setting="brand_slogan" value="{{index .Data.Settings "brand_slogan"}}"></label>
+      <div class="field"><span>品牌 Logo <em>白标</em></span>
+        <div class="row" style="gap:10px">
+          <span id="brand-logo-preview" class="avatar" style="width:42px;height:42px;font-size:9px;overflow:hidden">{{if index .Data.Settings "brand_logo"}}<img src="{{index .Data.Settings "brand_logo"}}" style="width:100%;height:100%;object-fit:cover" alt="">{{else}}LOGO{{end}}</span>
+          <input type="hidden" data-setting="brand_logo" value="{{index .Data.Settings "brand_logo"}}">
+          <button type="button" class="btn btn-sm" id="brand-logo-upload">上传 Logo</button>
+          <input type="file" id="brand-logo-file" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field"><span>货币符号</span><input data-setting="currency_symbol" value="{{index .Data.Settings "currency_symbol"}}"></label>
+        <label class="field"><span>默认时区</span><input data-setting="default_timezone" value="{{index .Data.Settings "default_timezone"}}"></label>
+      </div>
+      <label class="field"><span>控制台问候</span><input data-setting="console_notice" value="{{index .Data.Settings "console_notice"}}"></label>
+      <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" id="brand-save" type="submit">保存设置</button></div>
+    </form>
+  </section>
+
+  <section class="setting-card card fade-in">
+    <h3>Telegram 机器人</h3>
+    <p>机器人通过长轮询接收群消息，无需公网 Webhook。</p>
+    <div class="bot-card">
+      <span class="bot-mark">✈</span>
+      <div style="flex:1">
+        <strong>{{if .Data.Bot.connected}}{{.Data.Bot.name}}{{else}}尚未连接机器人{{end}}</strong>
+        <small>{{if .Data.Bot.connected}}@{{.Data.Bot.username}} · 长轮询运行中{{else}}在 .env 中配置 BOT_TOKEN 后重启{{end}}</small>
+      </div>
+      <span class="status-dot" style="width:9px;height:9px;{{if .Data.Bot.connected}}background:var(--emerald);box-shadow:0 0 10px var(--emerald){{else}}background:var(--faint){{end}}"></span>
+    </div>
+    <div class="setup-steps">
+      <div class="setup-step">在 @BotFather 创建机器人，复制 Bot Token。</div>
+      <div class="setup-step">把机器人拉进群，并设为管理员，勾选删除消息、封禁用户与邀请用户。</div>
+      <div class="setup-step">打开「机器人」页面保存 Token，系统会自动读取信息并连接。</div>
+      <div class="setup-step">在「群组管理」中接入群组，机器人会自动同步权限。</div>
+    </div>
+    <a class="btn btn-soft" href="/bot" style="margin-top:14px;width:100%">打开机器人设置 →</a>
+    <div class="code-block" style="margin-top:14px">BOT_TOKEN=123456:ABC-DEF...
+PUBLIC_URL=https://your-console.example.com
+APP_ADDR=127.0.0.1:8787</div>
+  </section>
+
+  <section class="setting-card card fade-in">
+    <h3>管理员账户</h3>
+    <p>当前登录：<b>{{.Data.Admin.DisplayName}}</b> · @{{.Data.Admin.Username}}</p>
+    <form id="password-form">
+      <label class="field"><span>当前密码</span><input type="password" id="pwd-current" autocomplete="current-password" required></label>
+      <div class="field-row">
+        <label class="field"><span>新密码 <em>至少 8 位</em></span><input type="password" id="pwd-new" autocomplete="new-password" required></label>
+        <label class="field"><span>确认新密码</span><input type="password" id="pwd-confirm" autocomplete="new-password" required></label>
+      </div>
+      <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" id="password-save" type="submit">更新密码</button></div>
+    </form>
+  </section>
+
+  <section class="setting-card card fade-in">
+    <h3>外观与主题</h3>
+    <p>选择你偏爱的控制台氛围，设置会保存在本机浏览器。</p>
+    <div class="row" style="gap:10px">
+      <button class="btn" data-theme-choice="dark" type="button" style="flex:1;height:54px">🌙 深空模式</button>
+      <button class="btn" data-theme-choice="light" type="button" style="flex:1;height:54px">☀️ 晨光模式</button>
+    </div>
+    <div class="info-list" style="margin-top:18px">
+      <div class="info-row"><span>数据库</span><b class="mono">{{.Data.Paths.db}}</b></div>
+      <div class="info-row"><span>上传目录</span><b class="mono">{{.Data.Paths.uploads}}</b></div>
+      <div class="info-row"><span>群组数量</span><b>{{.Data.Counts.groups}}</b></div>
+      <div class="info-row"><span>模板数量</span><b>{{.Data.Counts.templates}}</b></div>
+      <div class="info-row"><span>控制台版本</span><b>StarKeeper v2.0.0</b></div>
+    </div>
+    {{if .Demo}}
+    <div class="demo-hint" style="margin-top:14px"><span class="tag tag-amber">演示模式</span><p>未配置 BOT_TOKEN，所有发送操作会返回演示提示。数据仍会保存在本地 SQLite，可放心体验。</p></div>
+    {{end}}
+  </section>
+</div>
+{{end}}

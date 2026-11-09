@@ -1,0 +1,64 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon amber" style="width:42px;height:42px;border-radius:12px;font-size:19px">⚡</span>
+    <div><h2 style="margin:0;font-size:15px">自动化工作流</h2><p class="small muted" style="margin:0">当…发生，就…做，让运营规则自己跑起来</p></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="tag tag-cyan">{{len .Data.Automations}} 条规则</span>
+  <button class="btn btn-primary" id="new-automation">+ 新建规则</button>
+</section>
+
+<div class="group-grid" style="margin-top:18px">
+  {{range .Data.Automations}}
+  <article class="group-card automation-card" data-automation="{{.ID}}" style="padding:18px">
+    <div class="group-top">
+      <span class="group-avatar" style="background:linear-gradient(145deg,rgba(251,191,36,.25),rgba(34,211,238,.18));font-size:19px">⚡</span>
+      <div class="group-info"><h3>{{.Name}}</h3><p>{{.TriggerLabel}} · {{if eq .GroupID 0}}全部群组{{else}}群组 #{{.GroupID}}{{end}}</p></div>
+      <span class="tag {{if eq .Status "active"}}tag-emerald{{else}}tag-muted{{end}}">{{if eq .Status "active"}}运行中{{else}}已暂停{{end}}</span>
+    </div>
+    <div class="automation-flow"><span>当</span><b>{{.TriggerLabel}}</b><span>→</span><b>{{.ActionLabel}}</b></div>
+    <div class="group-meta">
+      <div><b>{{.RunCount}}</b><span>触发次数</span></div>
+      <div><b>{{if .LastRunAt}}{{timeAgo .LastRunAt}}{{else}}—{{end}}</b><span>最近运行</span></div>
+      <div><b>{{rune .ConditionLabel 30}}</b><span>条件</span></div>
+    </div>
+    <div class="group-actions">
+      <span class="tiny muted">按顺序执行动作</span>
+      <div class="row" style="gap:5px">
+        <button class="btn btn-sm" data-auto-edit>编辑</button>
+        <button class="btn btn-sm btn-ghost" data-auto-toggle>{{if eq .Status "active"}}暂停{{else}}启用{{end}}</button>
+        <button class="btn btn-sm btn-ghost" data-auto-delete style="color:var(--rose)">删除</button>
+      </div>
+    </div>
+  </article>
+  {{else}}
+  <div class="empty" style="padding:42px"><div class="empty-ico">⚡</div><h3>还没有自动化规则</h3><p>从「入群后 10 分钟自动提醒」「提到退款自动建工单」开始。</p></div>
+  {{end}}
+  <button class="group-add" id="new-automation-2" type="button" style="min-height:190px"><span class="plus">＋</span><strong style="font-size:12.5px">新建规则</strong><span class="tiny">入群 · 发言 · 签到 · 工单</span></button>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel">
+    <div class="panel-head"><div><h2>最近运行</h2><p>规则是否真的按预期触发</p></div><span class="tag tag-muted">最近 20 次</span></div>
+    <div class="table-wrap"><table><thead><tr><th>规则</th><th>群组</th><th>用户</th><th>结果</th><th>时间</th></tr></thead><tbody>
+      {{range .Data.Runs}}
+      <tr><td>#{{.AutomationID}}</td><td>#{{.GroupID}}</td><td class="mono tiny">{{.UserID}}</td><td><span class="tag {{if eq .Status "ok"}}tag-emerald{{else}}tag-rose{{end}}">{{.Status}}</span><span class="tiny muted"> {{rune .Detail 32}}</span></td><td class="tiny">{{timeAgo .CreatedAt}}</td></tr>
+      {{else}}
+      <tr><td colspan="5"><div class="empty" style="padding:24px"><p>还没有运行记录</p></div></td></tr>
+      {{end}}
+    </tbody></table></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head"><div><h2>可以这样用</h2><p>先用简单规则，再逐步组合</p></div><span class="tag tag-violet">示例</span></div>
+    <div class="setup-steps">
+      <div class="setup-step"><strong>入群提醒</strong>：成员入群 → 发消息「10 分钟后记得签到」。 </div>
+      <div class="setup-step"><strong>签到奖励</strong>：完成签到 → 加 5 积分。</div>
+      <div class="setup-step"><strong>退款关键词</strong>：群内发言包含「退款」→ 创建 Webhook / 发消息提醒管理员。</div>
+      <div class="setup-step"><strong>违规处理</strong>：发言命中关键词 → 禁言 10 分钟 → 加入全局黑名单。</div>
+      <div class="setup-step"><strong>工单提醒</strong>：成员提交工单 → 发消息到管理群 / 调 Webhook 到 CRM。</div>
+    </div>
+  </section>
+</div>
+{{end}}

@@ -1,0 +1,100 @@
+{{define "content"}}
+<section class="bot-hero card fade-in">
+  <div class="bot-hero-mark">✈</div>
+  <div class="bot-hero-copy">
+    <div class="row" style="gap:8px">
+      <h2>{{if .Data.Bot.connected}}{{.Data.Bot.name}}{{else}}尚未连接 Telegram 机器人{{end}}</h2>
+      {{if .Data.Bot.connected}}<span class="tag tag-emerald">在线</span>{{else if .Data.Bot.configured}}<span class="tag tag-amber">已保存，等待连接</span>{{else}}<span class="tag tag-muted">演示模式</span>{{end}}
+    </div>
+    <p>{{if .Data.Bot.connected}}@{{.Data.Bot.username}} · Bot ID {{.Data.Bot.id}}{{else}}保存 Bot Token 后会自动调用 getMe 获取机器人名称、用户名与权限{{end}}</p>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <span class="mini-feature">Token 来源：{{if eq .Data.Bot.token_source "console"}}后台保存{{else if eq .Data.Bot.token_source "env"}}.env 环境变量{{else}}未配置{{end}}</span>
+      <span class="mini-feature">已接入 {{.Data.Groups}} 个群组</span>
+      {{if .Data.Bot.can_read_all_group_messages}}<span class="mini-feature">可读取全部群消息</span>{{else if .Data.Bot.connected}}<span class="mini-feature">Privacy Mode 开启中</span>{{end}}
+    </div>
+  </div>
+  <div class="bot-hero-side">
+    {{if .Data.Bot.connected}}
+    <button class="btn" id="bot-refresh">刷新信息</button>
+    <button class="btn btn-danger" id="bot-disconnect">断开连接</button>
+    {{else}}
+    <a class="btn btn-ghost" href="#bot-token-form">填写 Token</a>
+    {{end}}
+  </div>
+</section>
+
+<div class="settings-grid" style="margin-top:18px">
+  <section class="setting-card card">
+    <h3>Bot Token</h3>
+    <p>在这里保存 Token，系统会立即校验并自动获取机器人信息，无需重启进程。Token 使用 AES-GCM 加密后写入 SQLite。</p>
+    <form id="bot-token-form">
+      <label class="field">
+        <span>Telegram Bot Token</span>
+        <input type="password" id="bot-token" placeholder="123456789:AAH-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <small class="field-hint">在 @BotFather 使用 <code>/newbot</code> 或 <code>/token</code> 获取。当前：<code>{{if .Data.Bot.masked_token}}{{.Data.Bot.masked_token}}{{else}}未配置{{end}}</code></small>
+      </label>
+      <button class="btn btn-primary" type="submit" id="bot-connect" style="width:100%">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        保存并连接
+      </button>
+    </form>
+    <div class="setup-steps" style="margin-top:18px">
+      <div class="setup-step">保存后会调用 getMe 验证 Token，失败不会覆盖当前连接。</div>
+      <div class="setup-step">连接成功后，长轮询会自动启动，无需重启控制台。</div>
+      <div class="setup-step">Token 只写入本机 SQLite，接口不会把明文返回给浏览器。</div>
+    </div>
+  </section>
+
+  <section class="setting-card card">
+    <h3>机器人信息</h3>
+    <p>以下信息由 Telegram getMe 实时返回。</p>
+    <div class="info-list">
+      <div class="info-row"><span>机器人名称</span><b>{{if .Data.Bot.name}}{{.Data.Bot.name}}{{else}}—{{end}}</b></div>
+      <div class="info-row"><span>用户名</span><b>{{if .Data.Bot.username}}@{{.Data.Bot.username}}{{else}}—{{end}}</b></div>
+      <div class="info-row"><span>Bot ID</span><b class="mono">{{if .Data.Bot.id}}{{.Data.Bot.id}}{{else}}—{{end}}</b></div>
+      <div class="info-row"><span>可加入群组</span><b>{{if .Data.Bot.can_join_groups}}是{{else if .Data.Bot.connected}}否{{else}}—{{end}}</b></div>
+      <div class="info-row"><span>可读取全部群消息</span><b>{{if .Data.Bot.can_read_all_group_messages}}是{{else if .Data.Bot.connected}}否（Privacy Mode 开启）{{else}}—{{end}}</b></div>
+      <div class="info-row"><span>连接状态</span><b>{{if .Data.Bot.connected}}在线长轮询{{else if .Data.Bot.configured}}已配置，等待网络{{else}}未连接{{end}}</b></div>
+    </div>
+    {{if .Data.Bot.connected}}<a class="btn btn-soft" style="margin-top:14px;width:100%" href="/groups">去群组管理 →</a>{{end}}
+  </section>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="card panel">
+    <div class="panel-head"><div><h2>接入步骤</h2><p>从 BotFather 到第一个群组，只需要几分钟</p></div><span class="tag tag-violet">SETUP</span></div>
+    <div class="setup-steps">
+      <div class="setup-step">在 Telegram 找到 @BotFather，发送 <code>/newbot</code>，记下 Token。</div>
+      <div class="setup-step">在上方粘贴 Token，点击「保存并连接」，系统会自动读取机器人信息。</div>
+      <div class="setup-step">在 BotFather 发送 <code>/setprivacy</code>，选择机器人并设置为 <b>Disable</b>，否则广告拦截看不到普通消息。</div>
+      <div class="setup-step">把机器人拉进群，并设为管理员：删除消息、限制成员、邀请用户。</div>
+      <div class="setup-step">进入「群组管理」接入群组，机器人被拉入新群后也会自动同步。</div>
+    </div>
+    <div class="demo-hint" style="margin-top:16px"><span class="tag tag-amber">提示</span><p>机器人在群里被提拔为管理员后，才会自动发送「星群管家已就位」卡片。群组配置里的欢迎与验证按钮，可以在每个群对应的标签页中点击「编辑文案与按钮」直接修改。</p></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head"><div><h2>群内命令</h2><p>机器人连接后会自动向 Telegram 注册这些命令</p></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>命令</th><th>说明</th></tr></thead>
+        <tbody>
+        {{range .Data.Commands}}
+        <tr><td><code class="mono">{{.command}}</code></td><td>{{.desc}}</td></tr>
+        {{end}}
+        </tbody>
+      </table>
+    </div>
+    <div class="info-list" style="margin-top:16px">
+      <div class="info-row"><span>管理控制台</span><b>当前页面</b></div>
+      <div class="info-row"><span>群组配置</span><b>群组管理 → 选择群组</b></div>
+      <div class="info-row"><span>文案与按钮</span><b>文案与按钮 → 模板工坊</b></div>
+    </div>
+  </section>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>为什么需要关闭 Privacy Mode？</h2><p>这是广告拦截能否工作的关键</p></div></div>
+  <p class="small muted" style="margin:0;line-height:1.9">Telegram 机器人默认开启 Privacy Mode，只能收到以 <code>/</code> 开头的命令、回复机器人的消息与私聊。普通群消息不会发送给机器人，因此无法识别广告。执行 <code>/setprivacy → Disable</code> 后，需要把机器人移出群再重新加入，权限才会刷新。若不打算使用广告拦截，可以保持开启。</p>
+</div>
+{{end}}

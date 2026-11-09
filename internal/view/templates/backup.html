@@ -1,0 +1,41 @@
+{{define "content"}}
+<section class="card panel fade-in" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="stat-icon cyan" style="width:42px;height:42px;border-radius:12px"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></span>
+    <div><h2 style="margin:0;font-size:15px">备份与恢复</h2><p class="small muted" style="margin:0">群配置、模板、积分、活动、审计与订单，一次带走</p></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="tag tag-muted">{{fmtBytes .Data.size}}</span>
+  {{if .Data.restore_pending}}<span class="tag tag-amber">已有恢复文件，重启后生效</span>{{end}}
+</section>
+
+<div class="settings-grid" style="margin-top:18px">
+  <section class="setting-card card">
+    <h3>下载完整备份</h3>
+    <p>通过 SQLite 在线备份生成一份一致性快照，包含所有群组、模板、积分、活动、审计、工单、商城与数字商品数据。适合迁移服务器或升级前留档。</p>
+    <a class="btn btn-primary" href="/api/backup/download" style="width:100%">下载数据库备份</a>
+    <div class="field-hint" style="margin-top:12px">备份文件是完整的 SQLite 数据库。请妥善保管，里面包含加密后的机器人 Token 与管理员密码摘要。</div>
+  </section>
+
+  <section class="setting-card card">
+    <h3>上传恢复</h3>
+    <p>上传一个由本系统导出的 <code>.db</code> 备份。当前数据库会先被保留为 <code>pre-restore-时间戳.db</code>，恢复在下次服务启动时生效。</p>
+    <form id="backup-form">
+      <label class="field"><span>选择备份文件</span><input type="file" id="backup-file" accept=".db,application/octet-stream" required></label>
+      <button class="btn btn-danger" id="backup-upload" type="submit" style="width:100%">上传并计划恢复</button>
+    </form>
+    <div class="field-hint" style="margin-top:12px">⚠️ 恢复会覆盖当前所有数据。建议先下载一份当前备份，并确认旧数据库文件仍保留在数据目录。</div>
+  </section>
+</div>
+
+<div class="card panel" style="margin-top:18px">
+  <div class="panel-head"><div><h2>恢复流程</h2><p>为了避免半途替换数据库，恢复需要一次重启</p></div><span class="tag tag-cyan">安全</span></div>
+  <div class="setup-steps">
+    <div class="setup-step"><strong>1.</strong> 下载当前备份留档。</div>
+    <div class="setup-step"><strong>2.</strong> 上传要恢复的 <code>.db</code> 文件，系统保存为 <code>data/restore.db</code>。</div>
+    <div class="setup-step"><strong>3.</strong> 重启星群管家进程；启动时会把当前库改名为 <code>pre-restore-*.db</code>，再应用上传的备份。</div>
+    <div class="setup-step"><strong>4.</strong> 登录确认数据；如果不对，可以停服后把 <code>pre-restore-*.db</code> 改回数据库路径。</div>
+  </div>
+  <div class="field-hint" style="margin-top:12px">数据库路径：<code>{{.Data.db_path}}</code></div>
+</div>
+{{end}}
